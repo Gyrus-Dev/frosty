@@ -1,6 +1,8 @@
 # Frosty AI
 
-**Frosty** is an AI-powered Snowflake management CLI built by [Gyrus Inc](https://www.thegyrus.com). It uses a multi-agent hierarchy powered by Google ADK and Gemini to plan, execute, and validate Snowflake DDL operations through natural language — directly from your terminal.
+**Frosty** is an AI-powered Snowflake management CLI built by [Gyrus Inc](https://www.thegyrus.com). It uses a multi-agent hierarchy powered by Google ADK to plan, execute, and validate Snowflake DDL operations through natural language — directly from your terminal.
+
+Frosty supports **OpenAI**, **Claude**, and **Gemini** models out of the box. Any other model that Google ADK supports can also be used — refer to the [Google ADK Models documentation](https://google.github.io/adk-docs/agents/models/) for the full list.
 
 ---
 
@@ -103,7 +105,7 @@ Tags · Contacts · Masking Policies · Privacy Policies · Projection Policies 
 
 | Layer | Technology |
 |---|---|
-| AI Framework | Google ADK 1.18+, Gemini 2.5 Flash / 2.5 Pro |
+| AI Framework | Google ADK 1.18+; supports OpenAI, Claude, Gemini (2.5 Flash / 2.5 Pro) and [more](https://google.github.io/adk-docs/agents/models/) |
 | Snowflake | snowflake-snowpark-python, snowflake-connector-python |
 | Terminal UI | Rich 13+, prompt_toolkit 3+ |
 | Validation | Pydantic 2.5+ |
@@ -116,7 +118,7 @@ Tags · Contacts · Masking Policies · Privacy Policies · Projection Policies 
 ### Prerequisites
 - Python 3.11.10
 - A Snowflake account with SYSADMIN or equivalent privileges
-- A Google API key with Gemini access
+- An API key for your chosen model provider (Google Gemini, OpenAI, or Anthropic Claude)
 
 ### Install
 
@@ -133,10 +135,18 @@ pip install -r requirements.txt
 
 ### Configure
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root. Set the API key for your chosen model provider:
 
 ```env
+# Google Gemini (default)
 GOOGLE_API_KEY=your_google_api_key
+
+# OpenAI (if using OpenAI models)
+# OPENAI_API_KEY=your_openai_api_key
+
+# Anthropic Claude (if using Claude models)
+# ANTHROPIC_API_KEY=your_anthropic_api_key
+
 SNOWFLAKE_ACCOUNT=your_account_identifier
 SNOWFLAKE_USER=your_username
 SNOWFLAKE_PASSWORD=your_password
