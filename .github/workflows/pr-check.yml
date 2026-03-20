@@ -1,0 +1,17 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    # NOTE: this job's name is used as the required status-check context in
+    # branch-protection.yml.  Do not rename it without updating that workflow.
+    name: PR Check
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Confirm PR is targeting main
+        run: echo "PR validation passed — changes are going through a pull request."
