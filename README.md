@@ -258,6 +258,7 @@ Tags · Contacts · Masking Policies · Privacy Policies · Projection Policies 
 | Terminal UI | Rich 13+, prompt_toolkit 3+ |
 | Validation | Pydantic 2.5+ |
 | Utilities | croniter, python-dateutil, GitPython |
+| Observability | OpenTelemetry SDK + OTLP HTTP exporter; Grafana Cloud (Tempo · Mimir · Loki) |
 
 ---
 
@@ -347,6 +348,52 @@ Set `MODEL_PROVIDER` to select your LLM backend. Defaults to `google`.
 |---|---|---|
 | `FROSTY_DEBUG` | No | Set to `1` to print agent thinking, tool calls, and payloads |
 
+#### Observability (OpenTelemetry + Grafana Cloud)
+
+Frosty has built-in OpenTelemetry instrumentation that is **off by default**. When `OTEL_ENABLED` is not set or is `false`, no OTel code runs and there is zero overhead. Set `OTEL_ENABLED=true` to export traces, metrics, and logs to any OTLP-compatible backend (Grafana Cloud, Tempo, Jaeger, etc.).
+
+**What gets instrumented:**
+
+| Signal | What is captured |
+|---|---|
+| **Traces** | One root span per user request (`frosty.user_request`); one span per agent model call (`agent.<name>`); one span per Snowflake query (`snowflake.execute_query`) with `db.statement`, `db.user`, `db.rows_returned` attributes |
+| **Metrics** | `frosty.queries.total`, `frosty.queries.errors`, `frosty.agent.invocations`, `frosty.query.duration_ms` |
+| **Logs** | All existing Python loggers (session, tools, config, pillar callbacks) bridged to the OTLP log exporter automatically |
+
+**Environment variables:**
+
+| Variable | Required | Description |
+|---|---|---|
+| `OTEL_ENABLED` | No | `true` to enable, `false` (default) to disable entirely |
+| `OTEL_SERVICE_NAME` | No | Service name shown in Grafana (default: `frosty`) |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | If enabled | Your OTLP gateway URL (e.g. `https://otlp-gateway-prod-us-east-3.grafana.net/otlp`) |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | No | `http/protobuf` (required for Grafana Cloud) |
+| `OTEL_EXPORTER_OTLP_HEADERS` | If enabled | Auth header from Grafana Cloud → Stack → OpenTelemetry. Python requires `Basic%20` instead of `Basic ` |
+
+**Getting your Grafana Cloud credentials:**
+
+1. Go to your Grafana Cloud stack → **Details** → **OpenTelemetry** section
+2. Generate a token with `metrics:write`, `logs:write`, `traces:write` scopes
+3. Copy the endpoint URL and the `Authorization=Basic%20<token>` header value shown on that page
+
+**Required packages** (already in `requirements.txt`):
+
+```bash
+pip install opentelemetry-api opentelemetry-sdk \
+            opentelemetry-exporter-otlp-proto-http \
+            opentelemetry-instrumentation-logging
+```
+
+**Viewing data in Grafana:**
+
+```
+Traces  → Explore → Data source: Tempo   → Service name: frosty_open_source
+Metrics → Explore → Data source: Prometheus → search "frosty_"
+Logs    → Explore → Data source: Loki    → Label: service_name = frosty_open_source
+```
+
+> **Note:** Metrics are exported on a 60-second interval. Type `exit` to quit Frosty rather than using Ctrl+C — this triggers a graceful flush of any buffered spans before the process ends.
+
 #### Example `.env`
 
 ```env
@@ -371,6 +418,13 @@ GOOGLE_API_KEY=your_google_api_key
 # OPENAI_API_KEY=your_openai_api_key
 # MODEL_PROVIDER=anthropic
 # ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# --- Observability / Grafana Cloud (optional) ---
+# OTEL_ENABLED=true
+# OTEL_SERVICE_NAME=frosty_open_source
+# OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-us-east-3.grafana.net/otlp
+# OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+# OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic%20<your-base64-token>
 ```
 
 ### Run
@@ -441,6 +495,7 @@ frosty/
 │   │   ├── adkrunner.py                  # ADK Runner wrapper
 │   │   ├── adksession.py                 # Session management
 │   │   ├── adkstate.py                   # State management (user:/app:/temp:)
+│   │   ├── telemetry.py                  # OpenTelemetry setup (traces, metrics, logs) — opt-in via OTEL_ENABLED
 │   │   └── objagents/
 │   │       ├── agent.py                  # Root agent (CLOUD_DATA_ARCHITECT)
 │   │       ├── main.py                   # CLI entry point & REPL loop
