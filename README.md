@@ -122,6 +122,85 @@ To override the default thinking model set `MODEL_THINKING` in your `.env` (see 
 
 ---
 
+### Built-in Code Execution (Gemini only)
+
+The Streamlit app generation pipeline uses ADK's `BuiltInCodeExecutor` to validate generated code before it is returned to the calling agent. The code generator writes the Streamlit-in-Snowflake application, executes it in a sandboxed environment, and only hands it back if execution succeeds — catching syntax errors and import issues before any deployment step.
+
+```
+  "build a dashboard for ORDERS and CUSTOMERS"
+                    │
+                    ▼
+         STREAMLIT_CODE_GENERATOR
+         ┌──────────────────────────────────┐
+         │  Generate Streamlit-in-Snowflake │
+         │  Python application              │
+         │           │                      │
+         │           ▼                      │
+         │  BuiltInCodeExecutor             │
+         │  (sandboxed execution)           │
+         │           │                      │
+         │  ✓ passes → return code          │
+         │  ✗ fails  → fix and retry        │
+         └──────────────────────────────────┘
+                    │
+                    ▼
+         STREAMLIT specialist creates
+         the Streamlit app in Snowflake
+```
+
+`BuiltInCodeExecutor` is a Gemini-native ADK feature and **cannot be combined with other tools on the same agent**. With OpenAI or Anthropic models it **will fail** — the Streamlit app generation pipeline is only functional when `MODEL_PROVIDER=google`. To support other providers, replace `BuiltInCodeExecutor` in `streamlit/code_generator/agent.py` with a custom `CodeExecutor` implementation — for example, a subprocess-based executor or a sandboxed Docker runner.
+
+---
+
+### Chat History & Persistent Sessions
+
+By default Frosty uses ADK's `InMemorySessionService` — the full conversation context (every turn, tool call, and agent response) is held in memory for the duration of the process and is lost when Frosty exits.
+
+```
+Current (default)
+─────────────────
+  adksession.py  →  InMemorySessionService  →  lost on exit
+```
+
+ADK's `Runner` accepts both a `session_service` and a `memory_service`. The `ADKRunner` wrapper in `adkrunner.py` already exposes both slots — `memory_service` is wired but currently `None`. To persist chat history, replace either service:
+
+**Persistent session history (full turn-by-turn log)**
+
+Swap `InMemorySessionService` in `adksession.py` for ADK's `DatabaseSessionService`, which writes sessions to a SQLite or PostgreSQL database:
+
+```python
+# adksession.py
+from google.adk.sessions import DatabaseSessionService
+
+session_service = DatabaseSessionService(db_url="sqlite:///frosty_sessions.db")
+# or PostgreSQL:
+# session_service = DatabaseSessionService(db_url="postgresql://user:pass@host/dbname")
+```
+
+Sessions survive process restarts — users can resume a previous conversation by passing the same `user_id` and `session_id`.
+
+**Long-term memory (significantly reduces context window pressure)**
+
+Without a memory service the entire turn-by-turn history accumulates in the active context window. For long or complex Snowflake operations this can fill the model's context limit quickly. Plugging in a `memory_service` offloads conversation summaries to an external store and injects only the relevant prior context into each new turn — freeing the context window for the current task:
+
+```python
+# adkrunner.py — pass a memory service to the Runner
+from google.adk.memory import VertexAiMemoryBankService  # or a custom implementation
+
+runner = ADKRunner(
+    agent=agent,
+    app_name=app_name,
+    session_service=session_service,
+    memory_service=VertexAiMemoryBankService(...),  # plug in here
+)
+```
+
+Any class that implements ADK's `BaseMemoryService` interface works — PostgreSQL, Redis, a vector database, or any other backend.
+
+For a fully managed setup with persistent sessions and long-term memory out of the box, visit [thegyrus.com](https://www.thegyrus.com).
+
+---
+
 ## Snowflake Objects Supported
 
 ### Data Engineering (35 object types)
@@ -213,10 +292,33 @@ Create a `.env` file in the project root with the variables below.
 | `SNOWFLAKE_USER_NAME` | **Yes** | Your Snowflake login username |
 | `SNOWFLAKE_USER_PASSWORD` | **Yes** | Your Snowflake password |
 | `SNOWFLAKE_ACCOUNT_IDENTIFIER` | **Yes** | Your Snowflake account identifier (e.g. `xy12345.us-east-1`) |
-| `SNOWFLAKE_AUTHENTICATOR` | No | Set to `username_password_mfa` for DUO/TOTP MFA; leave unset for standard password auth |
+| `SNOWFLAKE_AUTHENTICATOR` | No | Auth method — see MFA & Session Caching below |
 | `SNOWFLAKE_ROLE` | No | Default role for the session (e.g. `SYSADMIN`); if unset, uses your account default |
 | `SNOWFLAKE_WAREHOUSE` | No | Default warehouse to activate at session start; if unset, uses your account default |
 | `SNOWFLAKE_DATABASE` | No | Default database context; if unset, uses your account default |
+
+#### MFA & Session Caching
+
+**DUO Push / TOTP**
+
+Set `SNOWFLAKE_AUTHENTICATOR=username_password_mfa` to enable Snowflake's MFA flow. Frosty detects the MFA method automatically:
+
+- **DUO Push** — when the first query runs, Snowflake silently sends a push notification to your enrolled device. Approve it in the DUO app and the CLI resumes automatically — no terminal prompt appears.
+- **TOTP (authenticator app)** — if your account requires a time-based one-time passcode, **the CLI will pause and display a prompt asking you to enter your code**. The code you type will not be visible (hidden input). Enter the current passcode from your authenticator app and press Enter. The flow will resume and the session will be cached — you will not be prompted again for the rest of the process.
+
+> **Note:** The terminal may appear frozen while waiting for your input. This is expected — look for the prompt `TOTP passcode:` and type your code.
+
+**Session cache**
+
+Frosty maintains a process-level session cache keyed by `(account, user, authenticator, role, warehouse, database)`. Before every tool call the cached session is validated with `SELECT 1`. If Snowflake has closed the connection (idle timeout, network drop, etc.) the cache entry is discarded and a fresh session is opened automatically — triggering one more DUO push or TOTP prompt if MFA is enabled.
+
+**Other authenticator values**
+
+| Value | When to use |
+|---|---|
+| *(unset)* | Standard username + password |
+| `username_password_mfa` | DUO push or TOTP |
+| `externalbrowser` | SSO / Okta / passkey — no password required, opens a browser tab on first connect |
 
 #### Application Identity
 
@@ -358,6 +460,12 @@ frosty/
 ├── requirements.txt
 └── Makefile
 ```
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for a guide on adding specialist agents, new pillars, custom safety rules, ADK Skills, and extending Frosty with other ADK capabilities. A sample `snowflake-naming-conventions` skill is included in `skills/` as a starting point.
 
 ---
 
