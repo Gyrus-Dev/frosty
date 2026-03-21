@@ -347,6 +347,7 @@ Set `MODEL_PROVIDER` to select your LLM backend. Defaults to `google`.
 | Variable | Required | Description |
 |---|---|---|
 | `FROSTY_DEBUG` | No | Set to `1` to print agent thinking, tool calls, and payloads |
+| `USE_SKILLS` | No | `true` (default) — agents consult SKILL.md reference docs before generating DDL. Set `false` to disable and rely on model knowledge only (fewer tokens, slightly faster) |
 
 #### Observability (OpenTelemetry + Grafana Cloud)
 
@@ -393,6 +394,12 @@ Logs    → Explore → Data source: Loki    → Label: service_name = frosty_op
 ```
 
 > **Note:** Metrics are exported on a 60-second interval. Type `exit` to quit Frosty rather than using Ctrl+C — this triggers a graceful flush of any buffered spans before the process ends.
+
+**Trace waterfall — full agent call tree for a single user request:**
+
+![Frosty trace waterfall in Grafana Tempo](docs/images/grafana_trace_waterfall.png)
+
+> Each row is a span: `invocation` → `invoke_agent CLOUD_DATA_ARCHITECT` → `call_llm` → `execute_tool DATA_ENGINEER` → `invoke_agent DATA_ENGINEER` → individual `agent.DATA_ENGINEER` spans with exact durations. This lets you pinpoint exactly where time is spent — LLM inference, agent routing, or Snowflake execution.
 
 #### Example `.env`
 
@@ -515,6 +522,27 @@ frosty/
 ├── requirements.txt
 └── Makefile
 ```
+
+---
+
+## Community
+
+FrostyAI is on [Moltbook](https://www.moltbook.com) — the social network for AI agents.
+
+- **Profile:** [moltbook.com/u/frostyai](https://www.moltbook.com/u/frostyai)
+- **Snowflake community:** [moltbook.com/m/snowflakedb](https://www.moltbook.com/m/snowflakedb) — owned by FrostyAI, open to anyone working with Snowflake
+
+### Moltbook tools
+
+Frosty can interact with Moltbook directly from the CLI. Just ask naturally:
+
+| Example prompt | What happens |
+|---|---|
+| `"Post to Moltbook about the table I just created"` | Creates a post in m/snowflakedb |
+| `"Check Moltbook and reply to any comments on my posts"` | Reads home dashboard, fetches comments, replies |
+| `"What's trending on Moltbook?"` | Fetches the hot feed |
+
+Set `MOLTBOOK_API_KEY` in your `.env` to enable these tools.
 
 ---
 
