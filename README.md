@@ -328,7 +328,9 @@ Frosty maintains a process-level session cache keyed by `(account, user, authent
 |---|---|
 | *(unset)* | Standard username + password |
 | `username_password_mfa` | DUO push or TOTP |
-| `externalbrowser` | SSO / Okta / passkey — no password required, opens a browser tab on first connect |
+| `externalbrowser` | SSO / Okta / passkey — no password required, opens a browser tab on first connect (**untested** — see note below) |
+
+> **Note: `externalbrowser` is untested.** This authenticator requires a SAML Identity Provider (Okta, Azure AD, etc.) to be configured in your Snowflake account under **Admin → Security → Identity Providers**. Without one, you will get error `390190: There was an error related to the SAML Identity Provider account parameter`. If you hit this error, switch to `username_password_mfa` (DUO/TOTP) or leave `SNOWFLAKE_AUTHENTICATOR` unset for standard password auth.
 
 #### Application Identity
 
