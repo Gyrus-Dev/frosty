@@ -58,21 +58,30 @@ Frosty supports **OpenAI**, **Claude**, and **Gemini** models out of the box. An
 
 ### Web Search & Research Agent
 
-Any pillar can call the RESEARCH_AGENT as a fallback when it cannot resolve a query from its own knowledge. The search backend adapts to the active model provider:
+Specialist agents follow a two-step knowledge hierarchy before generating any DDL or query:
+
+**Step 1 — SKILL.md reference (when `USE_SKILLS=true`, the default)**
+Each specialist has a curated `SKILL.md` that documents every supported parameter, its default value, and when to use it. The agent reads this before writing any statement, so it produces accurate, non-bloated DDL without hallucinating unsupported syntax.
+
+**Step 2 — RESEARCH_AGENT fallback**
+If the specialist cannot resolve something from SKILL.md — or if `USE_SKILLS=false` and the agent is relying on model knowledge alone — it can delegate to the RESEARCH_AGENT to look up the answer from live web sources before generating the query.
 
 ```
-                         ┌─────────────────────────────────────────────┐
-                         │              RESEARCH_AGENT                 │
-                         │                                             │
-      Gemini models  ──► │  google_search (built-in grounding tool)    │
-                         │  Retrieval-augmented over live web results  │
-                         │                                             │
-   All other models  ──► │  DuckDuckGo search · returns top 5 results │
-                         │  (swap in any tool via research/tools.py)   │
-                         └─────────────────────────────────────────────┘
+  Specialist Agent
+       │
+       ├─► SKILL.md (USE_SKILLS=true)  ──►  Generate query
+       │       parameter reference            from reference
+       │
+       └─► RESEARCH_AGENT (fallback or USE_SKILLS=false)
+                         │
+                         ├── Gemini models  ──► google_search (built-in grounding)
+                         │                      Retrieval-augmented over live web
+                         │
+                         └── All other models ─► DuckDuckGo · top 5 results
+                                                  (swap via research/tools.py)
 ```
 
-Results are persisted to `app:RESEARCH_RESULTS` in session state so the same answer is not fetched twice within a session.
+Results are persisted to `app:RESEARCH_RESULTS` in session state so the same answer is not fetched twice within a session. See `USE_SKILLS` under [Debug & Feature Flags](#configure) to toggle skill injection.
 
 ---
 
