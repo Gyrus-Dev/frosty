@@ -85,6 +85,92 @@ Results are persisted to `app:RESEARCH_RESULTS` in session state so the same ans
 
 ---
 
+### Natural Language Data Queries
+
+Ask questions about your Snowflake data in plain English and get SQL-powered answers — no SQL knowledge required:
+
+```
+  "how many orders did we get last month?"
+  "show me the top 10 customers by revenue"
+  "what's the average order value by region?"
+                    │
+                    ▼
+         DATA_ANALYST specialist
+         ┌──────────────────────────────────────┐
+         │  discover_schema(database, schema)   │
+         │  (INFORMATION_SCHEMA join — one      │
+         │   round-trip for all tables +        │
+         │   columns)                           │
+         │               │                      │
+         │               ▼                      │
+         │  LLM generates Snowflake SQL         │
+         │  from schema context + question      │
+         │               │                      │
+         │               ▼                      │
+         │  run_data_query(sql)                 │
+         │  (read-only safety gate — rejects    │
+         │   any non-SELECT statement before    │
+         │   it reaches Snowflake)              │
+         └──────────────────────────────────────┘
+                    │
+                    ▼
+         Plain-English answer with key numbers,
+         Markdown tables, and notable findings
+```
+
+The agent **never writes SQL itself** — it gives the LLM full schema context (table names, column names, types, row counts, comments) so it can generate accurate, fully-qualified Snowflake SQL. A **read-only safety gate** rejects any INSERT, UPDATE, DELETE, DROP, or DDL statement before execution.
+
+Trigger with natural language: *"how many"*, *"show me"*, *"top N"*, *"average"*, *"total"*, *"which customers"*, *"compare"*, *"query my data"*, *"what's the revenue"*.
+
+---
+
+### Data Profiling
+
+Ask Frosty to profile any Snowflake table and get a comprehensive statistical report in seconds — no SQL required:
+
+```
+  "profile the ORDERS table in MY_DB.SALES"
+                    │
+                    ▼
+         DATA_PROFILER specialist
+         ┌──────────────────────────────────────┐
+         │  Fetch column metadata               │
+         │  (INFORMATION_SCHEMA.COLUMNS)        │
+         │               │                      │
+         │               ▼                      │
+         │  Single-pass profile query           │
+         │  · null count & null %               │
+         │  · distinct count & cardinality      │
+         │  · min / max                         │
+         │  · avg, stddev, p25, p50, p75        │
+         │    (numeric columns only)            │
+         │               │                      │
+         │               ▼                      │
+         │  Top-value frequency distribution    │
+         │  (low-cardinality columns only)      │
+         └──────────────────────────────────────┘
+                    │
+                    ▼
+         Markdown report with 4 sections:
+         · Table Summary
+         · Column Profiles
+         · Value Distributions
+         · Data Quality Flags
+```
+
+The profiler runs a **single SQL pass** across all columns — not one query per column — keeping credit usage minimal even on wide tables. For categorical columns (STATUS, REGION, TYPE, etc.) it automatically fetches value frequency distributions. Data quality issues are surfaced automatically:
+
+| Flag | Condition |
+|---|---|
+| ⚠️ High null rate | `null_pct > 20%` |
+| ⚠️ All-null column | `null_pct = 100%` |
+| ⚠️ Constant column | `distinct_count = 1` |
+| ℹ️ High-cardinality ID | `distinct ≈ total_rows` |
+
+Trigger with natural language: *"profile"*, *"describe columns"*, *"check data quality"*, *"show null rates"*, *"analyze distribution"*, *"explore table"*.
+
+---
+
 ### Synthetic Data Generation
 
 Ask Frosty to populate any table with realistic sample data and it will inspect the table structure first before writing a single row:
