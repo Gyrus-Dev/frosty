@@ -2,27 +2,37 @@
 
 **Frosty** is an open-source agentic framework for Snowflake  built by [Gyrus Inc](https://www.thegyrus.com) and free for anyone to run, extend, and own.
 
-Managing Snowflake at scale is expensive and complex. Provisioning warehouses, wiring up pipelines, enforcing governance policies, debugging cost spikes each task demands specialist SQL knowledge, careful dependency ordering, and constant back-and-forth with documentation. Frosty replaces that friction with a multi-agent system you control: describe what you need in plain English, and a hierarchy of ~170 specialist agents plans, executes, and validates the work against your live Snowflake account  step by step, safely, with every query visible in real time.
+Managing Snowflake at scale is expensive and complex. Provisioning warehouses, wiring up pipelines, enforcing governance policies, debugging cost spikes — each task demands specialist SQL knowledge, careful dependency ordering, and constant back-and-forth with documentation. Frosty replaces that friction with a multi-agent system you control: describe what you need in plain English, and a hierarchy of ~170 specialist agents plans, executes, and validates the work against your live Snowflake account — step by step, safely, with every query visible in real time.
 
-### Why Frosty?
+## Why Frosty?
 
-**No vendor lock-in — you own the stack.**
+### No vendor lock-in — you own the stack
+
 Frosty is self-hosted. The agents run in your environment, credentials never leave your machine, and you can read or modify every line of logic. There is no SaaS platform between you and your data warehouse.
 
-**Bring your own model.**
-Frosty works with OpenAI, Anthropic Claude, and Google Gemini out of the box, and supports any model that Google ADK supports. Swap models in a single `.env` line, no migration, no contract renegotiation. If a better model ships tomorrow, you can use it tomorrow.
+### Bring your own model
 
-**Purpose-built for Snowflake operations.**
+Frosty works with OpenAI, Anthropic Claude, and Google Gemini out of the box, and supports any model that Google ADK supports. Swap models in a single `.env` line — no code changes, no migration, no contract renegotiation. If a better model ships tomorrow, you can use it tomorrow.
+
+### Purpose-built for Snowflake operations
+
 155+ specialist agents cover the full surface area of Snowflake: data engineering, administration, security, governance, cost monitoring, and read-only inspection. Each agent carries curated reference docs (SKILL.md) so it generates accurate DDL without hallucinating unsupported syntax.
 
-**Safe by design.**
-Agents cannot run `DROP` or `CREATE OR REPLACE`  blocked at both the prompt level and in code before any query reaches Snowflake. Operations execute one at a time, in dependency order, with the manager validating each step before proceeding.
+### Safe by design
 
-**Natural language all the way down.**
+Agents cannot run `DROP` or `CREATE OR REPLACE` — blocked at both the prompt level and in code before any query reaches Snowflake. Operations execute one at a time, in dependency order, with the manager validating each step before proceeding.
+
+### Natural language all the way down
+
 Query your data, profile tables, generate synthetic rows, build Streamlit dashboards, inspect infrastructure costs — all from plain English. No SQL required for day-to-day operations.
 
-**Build your own analyst service — without paying for Cortex Analyst.**
-The DATA_ANALYST specialist is a fully self-contained natural-language-to-SQL engine: it discovers schema, generates Snowflake SQL, enforces a read-only safety gate, and returns plain-English answers with Markdown tables. Wrap it in any UI  a web app, a Slack bot, an internal dashboard and give your analysts the same conversational query experience as Snowflake Cortex Analyst, at a fraction of the cost. You pay only for LLM token usage. No Snowflake feature add-on, no per-seat fee, no platform markup.
+### Understands your entire Snowflake environment before it acts
+
+Before executing anything, the CLOUD_DATA_ARCHITECT routes through the INSPECTOR_PILLAR — 54 read-only specialists that map your live databases, schemas, tables, roles, warehouses, pipelines, and policies. Every plan is grounded in what actually exists in your account, not what the model assumes. This is the same "full Snowflake context" Snowflake markets with Cortex — except here you own the logic, you can inspect every inference the system makes, and the context window is not limited to what Snowflake's platform chooses to expose.
+
+### Build your own analyst service — without paying for Cortex Analyst
+
+The DATA_ANALYST specialist is a fully self-contained natural-language-to-SQL engine: it discovers schema, generates Snowflake SQL, enforces a read-only safety gate, and returns plain-English answers with Markdown tables. Wrap it in any UI — a web app, a Slack bot, an internal dashboard — and give your analysts the same conversational query experience as Snowflake Cortex Analyst, at a fraction of the cost. You pay only for LLM token usage. No Snowflake feature add-on, no per-seat fee, no platform markup.
 
 Frosty supports **OpenAI**, **Claude**, and **Gemini** models out of the box. Any other model that Google ADK supports can also be used — refer to the [Google ADK Models documentation](https://google.github.io/adk-docs/agents/models/) for the full list.
 
