@@ -6,6 +6,54 @@ Frosty supports **OpenAI**, **Claude**, and **Gemini** models out of the box. An
 
 ---
 
+## Quick Start
+
+```bash
+git clone https://github.com/MalviyaPriyank/frosty.git
+cd frosty
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env` and fill in your Snowflake credentials and model API key (see [Configure](#configure)), then:
+
+```bash
+python -m src.frosty_ai.objagents.main
+```
+
+> Full setup details — MFA, model providers, observability — are in [Setup](#setup) below.
+
+---
+
+## Safety — Two Layers of Protection
+
+Frosty enforces two independent safeguards that prevent destructive queries from ever reaching Snowflake:
+
+**Layer 1 — Agent instructions (prompt-level)**
+Every agent is instructed never to use `CREATE OR REPLACE` or `DROP`. Agents may only use `CREATE IF NOT EXISTS` or `ALTER`. This is the first line of defence — the LLM will refuse to generate these statements.
+
+**Layer 2 — `before_tool_callback` (code-level)**
+Even if an agent somehow produced a forbidden statement, a hard-coded callback in `tools.py` intercepts every call to `execute_query` before it reaches Snowflake and raises an exception if the query contains `DROP` or `CREATE OR REPLACE`. This enforcement runs regardless of what any agent instructs.
+
+```
+User request
+     │
+     ▼
+Agent generates SQL
+     │
+     ▼ before_tool_callback (tools.py)
+     │   ├─ contains "DROP"?             → blocked, exception raised
+     │   ├─ contains "CREATE OR REPLACE"? → blocked, exception raised
+     │   └─ clean → passed through
+     │
+     ▼
+execute_query() → Snowflake
+```
+
+Because Layer 2 is code — not a prompt — it cannot be bypassed by prompt injection or model drift. See [Key Safety Rules](#key-safety-rules) for details on extending the callback.
+
+---
+
 ## Architecture
 
 ```
