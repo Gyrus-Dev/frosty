@@ -122,6 +122,57 @@ The agent **never writes SQL itself** — it gives the LLM full schema context (
 
 Trigger with natural language: *"how many"*, *"show me"*, *"top N"*, *"average"*, *"total"*, *"which customers"*, *"compare"*, *"query my data"*, *"what's the revenue"*.
 
+#### Business Rules — Make It Smarter
+
+By default the agent infers SQL purely from schema metadata. You can make it significantly more accurate by adding **business rules** — metric definitions, canonical date columns, standard filters, and join keys specific to your data model.
+
+Ask Frosty to generate a first draft automatically:
+
+```
+  "generate my business rules draft for MY_DB.SALES"
+                    │
+                    ▼
+         generate_business_rules_draft(database, schema)
+         ┌──────────────────────────────────────────────┐
+         │  Inspect INFORMATION_SCHEMA                  │
+         │  · Metric candidates  — numeric columns      │
+         │    named *VALUE / *AMOUNT / *REVENUE / *COST │
+         │  · Date candidates    — DATE/TIMESTAMP cols, │
+         │    flagging the most likely primary per table │
+         │  · Enum candidates    — *STATUS / *TYPE cols │
+         │    that likely need standard filters         │
+         │  · Join key candidates — _ID columns shared  │
+         │    across multiple tables                    │
+         └──────────────────┬───────────────────────────┘
+                            │
+                            ▼
+         Writes draft to:
+         skills/snowflake-data-analyst/references/business-rules.md
+                            │
+                            ▼
+         "Draft saved — open the file and fill in
+          your actual definitions."
+```
+
+Open `skills/snowflake-data-analyst/references/business-rules.md`, replace the inferred placeholders with your real definitions:
+
+```markdown
+## Metric Definitions
+- **Revenue**: SUM(ORDER_VALUE) WHERE STATUS IN ('COMPLETED', 'SHIPPED')
+- **Active customers**: COUNT(DISTINCT CUSTOMER_ID) WHERE LAST_ORDER_DATE >= DATEADD('day', -90, CURRENT_DATE())
+
+## Canonical Date Columns
+- ORDERS: use ORDER_DATE (not CREATED_AT or UPDATED_AT)
+
+## Standard Filters
+- ORDERS: always exclude test orders — WHERE IS_TEST = FALSE
+
+## Common Table Joins
+- ORDERS → CUSTOMERS: JOIN ON ORDERS.CUSTOMER_ID = CUSTOMERS.ID
+```
+
+Once saved, the agent reads these rules before every SQL generation. Ask *"what was last month's revenue?"* and it will use `SUM(ORDER_VALUE) WHERE STATUS IN ('COMPLETED', 'SHIPPED')` — not a raw column sum — because you defined it. Disable by setting `USE_SKILLS=false`.
+
 ---
 
 ### Data Profiling
