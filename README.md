@@ -1,12 +1,12 @@
 # Frosty AI
 
-**Frosty** is an open-source agentic framework for Snowflake  built by [Gyrus Inc](https://www.thegyrus.com) and free for anyone to run, extend, and own.
+**Frosty** is an open-source agentic framework for Snowflake — built by [Gyrus Inc](https://www.thegyrus.com) and free for anyone to run, extend, and own.
 
-Type "who are my top 10 customers by revenue last quarter?" and get a Markdown table back. Type "set up MFA for all users without it" and watch the ALTER statements run. Type "why is my warehouse spend up 40% this month?" and get an ACCOUNT_USAGE breakdown. Frosty is a 170-agent system that turns plain English into Snowflake operations and unlike the managed alternatives, you host it, you own it, and you pay nothing beyond your LLM tokens.
+Type *"who are my top 10 customers by revenue last quarter?"* and get a Markdown table back. Type *"set up MFA for all users without it"* and watch the ALTER statements run. Type *"why is my warehouse spend up 40% this month?"* and get an ACCOUNT_USAGE breakdown. Frosty is a 170-agent system that turns plain English into Snowflake operations — and unlike the managed alternatives, you host it, you own it, and you pay nothing beyond your LLM tokens.
 
 ## Why Frosty?
 
-### No vendor lock-in, you own the stack
+### No vendor lock-in — you own the stack
 
 Frosty is self-hosted. The agents run in your environment, credentials never leave your machine, and you can read or modify every line of logic. There is no SaaS platform between you and your data warehouse.
 
@@ -20,7 +20,7 @@ Frosty works with OpenAI, Anthropic Claude, and Google Gemini out of the box, an
 
 ### Safe by design
 
-Agents cannot run `DROP` or `CREATE OR REPLACE`  blocked at both the prompt level and in code before any query reaches Snowflake. Operations execute one at a time, in dependency order, with the manager validating each step before proceeding.
+Agents cannot run `DROP` or `CREATE OR REPLACE` — blocked at both the prompt level and in code before any query reaches Snowflake. Operations execute one at a time, in dependency order, with the manager validating each step before proceeding.
 
 ### Natural language all the way down
 
@@ -32,7 +32,7 @@ Before executing anything, the CLOUD_DATA_ARCHITECT routes through the INSPECTOR
 
 ### Build your own analyst service — without paying for Cortex Analyst
 
-The DATA_ANALYST specialist is a fully self-contained natural-language-to-SQL engine: it discovers schema, generates Snowflake SQL, enforces a read-only safety gate, and returns plain-English answers with Markdown tables. Wrap it in any UI — a web app, a Slack bot, an internal dashboard — and give your analysts the same conversational query experience as Snowflake Cortex Analyst, at a fraction of the cost. You pay only for LLM token usage.
+The DATA_ANALYST specialist is a fully self-contained natural-language-to-SQL engine: it discovers schema, generates Snowflake SQL, enforces a read-only safety gate, and returns plain-English answers with Markdown tables. Wrap it in any UI — a web app, a Slack bot, an internal dashboard — and give your analysts the same conversational query experience as Snowflake Cortex Analyst, at a fraction of the cost. You pay only for LLM token usage. No Snowflake feature add-on, no per-seat fee, no platform markup.
 
 Frosty supports **OpenAI**, **Claude**, and **Gemini** models out of the box. Any other model that Google ADK supports can also be used — refer to the [Google ADK Models documentation](https://google.github.io/adk-docs/agents/models/) for the full list.
 
