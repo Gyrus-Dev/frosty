@@ -1,7 +1,7 @@
 # Frosty AI
 
-**Frosty** is an open-source agentic framework for Snowflake — built by [Gyrus Inc](https://www.thegyrus.com) and free for anyone to run, extend, and own. 
-  
+**Frosty** is an open-source agentic framework for Snowflake — built by [Gyrus Inc](https://www.thegyrus.com) and free for anyone to run, extend, and own.
+
 Type *"who are my top 10 customers by revenue last quarter?"* and get a Markdown table back. Type *"set up MFA for all users without it"* and watch the ALTER statements run. Type *"why is my warehouse spend up 40% this month?"* and get an ACCOUNT_USAGE breakdown. Frosty is a 153-agent system that turns plain English into Snowflake operations — and unlike the managed alternatives, you host it, you own it, and you pay nothing beyond your LLM tokens.
 
 ## Why Frosty?
@@ -38,7 +38,72 @@ Frosty supports **OpenAI**, **Claude**, and **Gemini** models out of the box. An
 
 ---
 
-## Quick Start
+## What Can Frosty Do?
+
+Frosty covers the full operational surface of Snowflake through 153 specialist agents across 7 pillars:
+
+- **Data engineering** — build and manage tables, views, pipelines, stored procedures, functions, stages, Streamlit apps, and ML models in plain English
+- **Administration** — manage users, roles, warehouses, compute pools, resource monitors, and replication from natural language
+- **Security** — configure network policies, authentication policies, security integrations, and secrets
+- **Governance** — apply tags, masking policies, row access policies, and data exchange listings
+- **Infrastructure inspection** — 56 read-only agents that map your entire Snowflake environment before any action is taken
+- **Account monitoring** — query ACCOUNT_USAGE for warehouse spend, query history, storage, task automation, and security audits
+- **Data analysis** — ask questions about your data in plain English and get SQL-powered answers with Markdown tables
+
+### Snowflake Objects Supported
+
+#### Data Engineering (34 object types)
+Databases · Schemas · Tables · Views · Materialized Views · Semantic Views · External Tables · Hybrid Tables · Iceberg Tables · Dynamic Tables · File Formats · External Stages · Internal Stages · External Volumes · Streams · Tasks · Stored Procedures · User-Defined Functions · External Functions · Sequences · Cortex Search · Snowpipe · COPY INTO · Event Tables · Storage Lifecycle Policies · Snapshots · Snapshot Policies · Snapshot Sets · Streamlit Apps · Models · Datasets · Data Metric Functions · Notebooks · Sample Data
+
+#### Administration (16 object types)
+Users · Roles · Database Roles · Warehouses · Compute Pools · Resource Monitors · Notification Integrations (Email, Azure Event Grid, Google Pub/Sub, Webhook) · Failover Groups · Replication Groups · Organization Profiles · Connections · Application Packages · Image Repositories · Services · Provisioned Throughput · Alerts
+
+#### Security (14 object types)
+Authentication Policies · Password Policies · Network Rules · Network Policies · Security Integrations (External API Auth, AWS IAM, External OAuth) · API Integrations (Amazon API Gateway) · External Access Integrations · Session Policies · Packages Policies · Secrets · Aggregation Policies · Join Policies
+
+#### Governance (8 object types)
+Tags · Contacts · Masking Policies · Privacy Policies · Projection Policies · Row Access Policies · Data Exchanges · Listings
+
+#### Account Monitoring (25 views across 6 domain groups)
+**Query & Access** — Access History · Copy History · Load History · Login History · Query History
+**Warehouse & Compute** — Automatic Clustering · Data Transfer History · Metering Daily History · Warehouse Events History · Warehouse Metering History
+**Task Automation** — Alert History · Materialized View Refresh · Serverless Task History · Task History
+**Storage** — Pipes · Stages · Storage Usage · Table Storage Metrics
+**Security & Identity** — Grants to Roles · Grants to Users · Roles · Sessions · Users
+**Infrastructure** — Databases · Schemata
+
+### CLI Features
+
+```
+███████╗██████╗  ██████╗ ███████╗████████╗██╗   ██╗
+██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝╚██╗ ██╔╝
+█████╗  ██████╔╝██║   ██║███████╗   ██║    ╚████╔╝
+██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║     ╚██╔╝
+██║     ██║  ██║╚██████╔╝███████║   ██║      ██║
+╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝      ╚═╝
+                      ╰─ by Gyrus Inc ─╯
+                    www.thegyrus.com
+```
+
+- **Boxed input** — `prompt_toolkit` framed text input with cyan border
+- **Animated spinner** — Braille frames (⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏) tracking the active agent
+- **Response panels** — Markdown-rendered AI responses in blue panels
+- **SQL panels** — Syntax-highlighted executed queries in green panels (monokai theme)
+- **Question panels** — Clarifying questions surfaced in yellow panels
+- **Object counter** — Live terminal title and inline `[● Objects created: N]` counter
+- **Session export** — All executed SQL written to `queries/session_<timestamp>.sql` on exit
+- **Debug mode** — `FROSTY_DEBUG=1` to print agent thinking, tool calls, and payloads
+
+---
+
+## How to Use It
+
+### Prerequisites
+- Python 3.11.10
+- A Snowflake account with SYSADMIN or equivalent privileges
+- An API key for your chosen model provider (Google Gemini, OpenAI, or Anthropic Claude)
+
+### Install
 
 ```bash
 git clone https://github.com/MalviyaPriyank/frosty.git
@@ -47,17 +112,172 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env` and fill in your Snowflake credentials and model API key (see [Configure](#configure)), then:
+### Configure
+
+Create a `.env` file in the project root with the variables below.
+
+#### Snowflake Connection
+
+| Variable | Required | Description |
+|---|---|---|
+| `SNOWFLAKE_USER_NAME` | **Yes** | Your Snowflake login username |
+| `SNOWFLAKE_USER_PASSWORD` | **Yes** | Your Snowflake password |
+| `SNOWFLAKE_ACCOUNT_IDENTIFIER` | **Yes** | Your Snowflake account identifier (e.g. `xy12345.us-east-1`) |
+| `SNOWFLAKE_AUTHENTICATOR` | No | Auth method — see MFA & Session Caching below |
+| `SNOWFLAKE_ROLE` | No | Default role for the session (e.g. `SYSADMIN`); if unset, uses your account default |
+| `SNOWFLAKE_WAREHOUSE` | No | Default warehouse to activate at session start; if unset, uses your account default |
+| `SNOWFLAKE_DATABASE` | No | Default database context; if unset, uses your account default |
+
+#### MFA & Session Caching
+
+**DUO Push / TOTP**
+
+Set `SNOWFLAKE_AUTHENTICATOR=username_password_mfa` to enable Snowflake's MFA flow. Frosty detects the MFA method automatically:
+
+- **DUO Push** — when the first query runs, Snowflake silently sends a push notification to your enrolled device. Approve it in the DUO app and the CLI resumes automatically — no terminal prompt appears.
+- **TOTP (authenticator app)** — if your account requires a time-based one-time passcode, **the CLI will pause and display a prompt asking you to enter your code**. The code you type will not be visible (hidden input). Enter the current passcode from your authenticator app and press Enter. The flow will resume and the session will be cached — you will not be prompted again for the rest of the process.
+
+> **Note:** The terminal may appear frozen while waiting for your input. This is expected — look for the prompt `TOTP passcode:` and type your code.
+
+**Session cache**
+
+Frosty maintains a process-level session cache keyed by `(account, user, authenticator, role, warehouse, database)`. Before every tool call the cached session is validated with `SELECT 1`. If Snowflake has closed the connection (idle timeout, network drop, etc.) the cache entry is discarded and a fresh session is opened automatically — triggering one more DUO push or TOTP prompt if MFA is enabled.
+
+**Other authenticator values**
+
+| Value | When to use |
+|---|---|
+| *(unset)* | Standard username + password |
+| `username_password_mfa` | DUO push or TOTP |
+| `externalbrowser` | SSO / Okta / passkey — no password required, opens a browser tab on first connect (**untested** — see note below) |
+
+> **Note: `externalbrowser` is untested.** This authenticator requires a SAML Identity Provider (Okta, Azure AD, etc.) to be configured in your Snowflake account under **Admin → Security → Identity Providers**. Without one, you will get error `390190: There was an error related to the SAML Identity Provider account parameter`. If you hit this error, switch to `username_password_mfa` (DUO/TOTP) or leave `SNOWFLAKE_AUTHENTICATOR` unset for standard password auth.
+
+#### Application Identity
+
+| Variable | Required | Description |
+|---|---|---|
+| `APP_USER_NAME` | **Yes** | Display name shown in the session (can be any string, e.g. your name) |
+| `APP_USER_ID` | **Yes** | Unique user ID for session tracking (e.g. `user_001`) |
+| `APP_NAME` | **Yes** | Application name for session scoping (e.g. `frosty`) |
+
+#### Model Provider
+
+Set `MODEL_PROVIDER` to select your LLM backend. Defaults to `google`.
+
+| Variable | Required | Description |
+|---|---|---|
+| `MODEL_PROVIDER` | No | `google` (default) · `openai` · `anthropic` |
+| `GOOGLE_API_KEY` | If `google` | API key for Gemini models |
+| `OPENAI_API_KEY` | If `openai` | API key for OpenAI models |
+| `ANTHROPIC_API_KEY` | If `anthropic` | API key for Claude models |
+| `MODEL_PRIMARY` | No | Override the primary (fast) model. Defaults: `gemini-2.5-flash` · `openai/gpt-4o-mini` · `anthropic/claude-3-5-haiku-20241022` |
+| `MODEL_THINKING` | No | Override the thinking (reasoning) model. Defaults: `gemini-2.5-pro-preview-03-25` · `openai/gpt-4o` · `anthropic/claude-3-5-sonnet-20241022` |
+
+#### Debug & Feature Flags
+
+| Variable | Required | Description |
+|---|---|---|
+| `FROSTY_DEBUG` | No | Set to `1` to print agent thinking, tool calls, and payloads |
+| `USE_SKILLS` | No | `true` (default) — agents consult SKILL.md reference docs before generating DDL. Set `false` to disable and rely on model knowledge only (fewer tokens, slightly faster) |
+
+#### Observability (OpenTelemetry + Grafana Cloud)
+
+Frosty has built-in OpenTelemetry instrumentation that is **off by default**. When `OTEL_ENABLED` is not set or is `false`, no OTel code runs and there is zero overhead. Set `OTEL_ENABLED=true` to export traces, metrics, and logs to any OTLP-compatible backend (Grafana Cloud, Tempo, Jaeger, etc.).
+
+**What gets instrumented:**
+
+| Signal | What is captured |
+|---|---|
+| **Traces** | One root span per user request (`frosty.user_request`); one span per agent model call (`agent.<name>`); one span per Snowflake query (`snowflake.execute_query`) with `db.statement`, `db.user`, `db.rows_returned` attributes |
+| **Metrics** | `frosty.queries.total`, `frosty.queries.errors`, `frosty.agent.invocations`, `frosty.query.duration_ms` |
+| **Logs** | All existing Python loggers (session, tools, config, pillar callbacks) bridged to the OTLP log exporter automatically |
+
+**Environment variables:**
+
+| Variable | Required | Description |
+|---|---|---|
+| `OTEL_ENABLED` | No | `true` to enable, `false` (default) to disable entirely |
+| `OTEL_SERVICE_NAME` | No | Service name shown in Grafana (default: `frosty`) |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | If enabled | Your OTLP gateway URL (e.g. `https://otlp-gateway-prod-us-east-3.grafana.net/otlp`) |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | No | `http/protobuf` (required for Grafana Cloud) |
+| `OTEL_EXPORTER_OTLP_HEADERS` | If enabled | Auth header from Grafana Cloud → Stack → OpenTelemetry. Python requires `Basic%20` instead of `Basic ` |
+
+**Getting your Grafana Cloud credentials:**
+
+1. Go to your Grafana Cloud stack → **Details** → **OpenTelemetry** section
+2. Generate a token with `metrics:write`, `logs:write`, `traces:write` scopes
+3. Copy the endpoint URL and the `Authorization=Basic%20<token>` header value shown on that page
+
+**Required packages** (already in `requirements.txt`):
+
+```bash
+pip install opentelemetry-api opentelemetry-sdk \
+            opentelemetry-exporter-otlp-proto-http \
+            opentelemetry-instrumentation-logging
+```
+
+**Viewing data in Grafana:**
+
+```
+Traces  → Explore → Data source: Tempo   → Service name: frosty_open_source
+Metrics → Explore → Data source: Prometheus → search "frosty_"
+Logs    → Explore → Data source: Loki    → Label: service_name = frosty_open_source
+```
+
+> **Note:** Metrics are exported on a 60-second interval. Type `exit` to quit Frosty rather than using Ctrl+C — this triggers a graceful flush of any buffered spans before the process ends.
+
+**Trace waterfall — full agent call tree for a single user request:**
+
+![Frosty trace waterfall in Grafana Tempo](docs/images/grafana_trace_waterfall.png)
+
+> Each row is a span: `invocation` → `invoke_agent CLOUD_DATA_ARCHITECT` → `call_llm` → `execute_tool DATA_ENGINEER` → `invoke_agent DATA_ENGINEER` → individual `agent.DATA_ENGINEER` spans with exact durations. This lets you pinpoint exactly where time is spent — LLM inference, agent routing, or Snowflake execution.
+
+#### Example `.env`
+
+```env
+# --- Snowflake ---
+SNOWFLAKE_USER_NAME=john.doe
+SNOWFLAKE_USER_PASSWORD=your_password
+SNOWFLAKE_ACCOUNT_IDENTIFIER=xy12345.us-east-1
+
+# SNOWFLAKE_AUTHENTICATOR=username_password_mfa   # uncomment for DUO/TOTP MFA
+# SNOWFLAKE_ROLE=SYSADMIN
+# SNOWFLAKE_WAREHOUSE=COMPUTE_WH
+# SNOWFLAKE_DATABASE=MY_DB
+
+# --- App identity ---
+APP_USER_NAME=John Doe
+APP_USER_ID=user_001
+APP_NAME=frosty
+
+# --- Model provider (default: Google Gemini) ---
+GOOGLE_API_KEY=your_google_api_key
+# MODEL_PROVIDER=openai
+# OPENAI_API_KEY=your_openai_api_key
+# MODEL_PROVIDER=anthropic
+# ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# --- Observability / Grafana Cloud (optional) ---
+# OTEL_ENABLED=true
+# OTEL_SERVICE_NAME=frosty_open_source
+# OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-us-east-3.grafana.net/otlp
+# OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+# OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic%20<your-base64-token>
+```
+
+### Run
 
 ```bash
 python -m src.frosty_ai.objagents.main
 ```
 
-> Full setup details — MFA, model providers, observability — are in [Setup](#setup) below.
+Enable debug output:
+```bash
+FROSTY_DEBUG=1 python -m src.frosty_ai.objagents.main
+```
 
----
-
-## Safety — Two Layers of Protection
+### Safety Safeguards — DROP and CREATE OR REPLACE
 
 Frosty enforces two independent safeguards before any query reaches Snowflake:
 
@@ -67,8 +287,8 @@ Every agent prefers `CREATE IF NOT EXISTS` or `ALTER` over `CREATE OR REPLACE`. 
 **Layer 2 — `execute_query` safety gate (code-level)**
 A hard-coded check in `tools.py` intercepts every call to `execute_query` before it reaches Snowflake:
 
-- **`DROP`** — blocked unconditionally. No prompt, no override.
-- **`CREATE OR REPLACE`** — execution pauses. The full statement is displayed in a red panel on the terminal and the user is asked `Proceed? [yes/no]`. Only `yes` or `y` allows the query through; anything else returns a "user declined" response to the agent, which then suggests alternatives.
+- **`DROP`** — blocked unconditionally. No prompt, no override, never reaches Snowflake. This applies even if you ask explicitly.
+- **`CREATE OR REPLACE`** — execution pauses. The full statement is displayed in a red panel on the terminal and you are asked `Proceed? [yes/no]`. Only `yes` or `y` allows the query through; anything else returns a "user declined" response to the agent, which then suggests alternatives (`ALTER`, `CREATE IF NOT EXISTS`).
 
 ```
 User request
@@ -87,7 +307,7 @@ Agent generates SQL
 execute_query() → Snowflake
 ```
 
-Because Layer 2 is code — not a prompt — it cannot be bypassed by prompt injection or model drift. See [Key Safety Rules](#key-safety-rules) for details on extending the gate.
+Because Layer 2 is code — not a prompt — it cannot be bypassed by prompt injection or model drift.
 
 ---
 
@@ -166,7 +386,7 @@ If the specialist cannot resolve something from SKILL.md — or if `USE_SKILLS=f
                                                   (swap via research/tools.py)
 ```
 
-Results are persisted to `app:RESEARCH_RESULTS` in session state so the same answer is not fetched twice within a session. See `USE_SKILLS` under [Debug & Feature Flags](#configure) to toggle skill injection.
+Results are persisted to `app:RESEARCH_RESULTS` in session state so the same answer is not fetched twice within a session. See `USE_SKILLS` under [Debug & Feature Flags](#debug--feature-flags) to toggle skill injection.
 
 ---
 
@@ -307,65 +527,6 @@ Trigger with natural language: *"profile"*, *"describe columns"*, *"check data q
 
 ---
 
-### Stored Procedure Validation — Safe Two-Step Creation
-
-Frosty never writes a stored procedure directly. Every new or updated procedure goes through a mandatory two-step flow that validates syntax and logic before anything is committed to Snowflake:
-
-```
-  "create a stored procedure SP_LOAD_CUSTOMERS in CDC_PROCESSED.BRONZE"
-                    │
-                    ▼
-         Step 1 — create_and_validate_procedure (validation only)
-         ┌──────────────────────────────────────────────────────┐
-         │  Rewrites procedure name to a unique temp name       │
-         │  e.g. SP_LOAD_CUSTOMERS_FROSTY_VAL_3A2B1C4D         │
-         │                    │                                 │
-         │                    ▼                                 │
-         │  BEGIN                                               │
-         │    CREATE PROCEDURE <temp_name> (...)                │
-         │    CALL <temp_name>(sample_args)   ← dry-run test    │
-         │  ROLLBACK  ← always, pass or fail                    │
-         │                                                      │
-         │  Nothing persists in Snowflake                       │
-         └──────────────────────┬───────────────────────────────┘
-                                │
-                  ┌─────────────┴─────────────┐
-                  ▼                           ▼
-            syntax/logic error          validation passes
-            fix SQL, retry Step 1       proceed to Step 2
-                  │                            │
-         (5 consecutive failures)              ▼
-                  │                Step 2 — execute_query (real creation)
-                  ▼                ┌─────────────────────────────────────┐
-         RESEARCH_AGENT invoked    │  execute_query(validated_sql)        │
-         ┌────────────────────┐    │  CREATE OR REPLACE → approval prompt │
-         │ 1. check cache     │    │  CREATE IF NOT EXISTS → direct       │
-         │    (get_research_  │    └─────────────────────────────────────┘
-         │     results)       │                   │
-         │ 2. if not cached → │                   ▼
-         │    live web search │      Procedure created in Snowflake
-         │    for Snowflake   │
-         │    SQL docs        │
-         └────────┬───────────┘
-                  │ retry with fresh knowledge
-                  ▼
-            still failing after
-            5 more attempts?
-                  │
-                  ▼
-            ⚠ skip & report to user
-```
-
-**Why this matters:**
-
-- **No broken procedures** — syntax errors and runtime failures are caught before the real procedure is touched. If the dry-run CALL fails, nothing is changed in Snowflake.
-- **Safe for existing procedures** — the validation step uses a throwaway name so it never collides with or overwrites a live procedure, even when testing updates.
-- **Always rolled back** — the validation transaction is always rolled back regardless of outcome. The only thing that ever reaches Snowflake permanently is the final `execute_query` call in Step 2.
-- **Approval gate on replace** — if Step 2 uses `CREATE OR REPLACE`, the standard approval prompt fires before execution, giving you a final review of the validated SQL.
-- **Self-healing for complex procedures** — if the agent fails validation 5 consecutive times on a complex procedure, it automatically invokes the RESEARCH_AGENT to look up the latest Snowflake SQL docs from the web (checking a session cache first to avoid duplicate fetches), then retries with that fresh knowledge. If it still cannot produce a valid procedure after the research-backed retries, it stops and reports the error clearly so you can review it manually.
-
----
-
 ### Synthetic Data Generation
 
 Ask Frosty to populate any table with realistic sample data and it will inspect the table structure first before writing a single row:
@@ -458,268 +619,6 @@ With the managed service, Frosty also evolves over time: it adapts to your busin
 
 ---
 
-## Snowflake Objects Supported
-
-### Data Engineering (34 object types)
-Databases · Schemas · Tables · Views · Materialized Views · Semantic Views · External Tables · Hybrid Tables · Iceberg Tables · Dynamic Tables · File Formats · External Stages · Internal Stages · External Volumes · Streams · Tasks · Stored Procedures · User-Defined Functions · External Functions · Sequences · Cortex Search · Snowpipe · COPY INTO · Event Tables · Storage Lifecycle Policies · Snapshots · Snapshot Policies · Snapshot Sets · Streamlit Apps · Models · Datasets · Data Metric Functions · Notebooks · Sample Data
-
-### Administration (16 object types)
-Users · Roles · Database Roles · Warehouses · Compute Pools · Resource Monitors · Notification Integrations (Email, Azure Event Grid, Google Pub/Sub, Webhook) · Failover Groups · Replication Groups · Organization Profiles · Connections · Application Packages · Image Repositories · Services · Provisioned Throughput · Alerts
-
-### Security (14 object types)
-Authentication Policies · Password Policies · Network Rules · Network Policies · Security Integrations (External API Auth, AWS IAM, External OAuth) · API Integrations (Amazon API Gateway) · External Access Integrations · Session Policies · Packages Policies · Secrets · Aggregation Policies · Join Policies
-
-### Governance (8 object types)
-Tags · Contacts · Masking Policies · Privacy Policies · Projection Policies · Row Access Policies · Data Exchanges · Listings
-
-### Account Monitoring (25 views across 6 domain groups)
-**Query & Access** — Access History · Copy History · Load History · Login History · Query History
-**Warehouse & Compute** — Automatic Clustering · Data Transfer History · Metering Daily History · Warehouse Events History · Warehouse Metering History
-**Task Automation** — Alert History · Materialized View Refresh · Serverless Task History · Task History
-**Storage** — Pipes · Stages · Storage Usage · Table Storage Metrics
-**Security & Identity** — Grants to Roles · Grants to Users · Roles · Sessions · Users
-**Infrastructure** — Databases · Schemata
-
----
-
-## CLI Features
-
-```
-███████╗██████╗  ██████╗ ███████╗████████╗██╗   ██╗
-██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝╚██╗ ██╔╝
-█████╗  ██████╔╝██║   ██║███████╗   ██║    ╚████╔╝
-██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║     ╚██╔╝
-██║     ██║  ██║╚██████╔╝███████║   ██║      ██║
-╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝      ╚═╝
-                      ╰─ by Gyrus Inc ─╯
-                    www.thegyrus.com
-```
-
-- **Boxed input** — `prompt_toolkit` framed text input with cyan border
-- **Animated spinner** — Braille frames (⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏) tracking the active agent
-- **Response panels** — Markdown-rendered AI responses in blue panels
-- **SQL panels** — Syntax-highlighted executed queries in green panels (monokai theme)
-- **Question panels** — Clarifying questions surfaced in yellow panels
-- **Object counter** — Live terminal title and inline `[● Objects created: N]` counter
-- **Session export** — All executed SQL written to `queries/session_<timestamp>.sql` on exit
-- **Debug mode** — `FROSTY_DEBUG=1` to print agent thinking, tool calls, and payloads
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| AI Framework | Google ADK 1.18+; supports OpenAI, Claude, Gemini (2.5 Flash / 2.5 Pro) and [more](https://google.github.io/adk-docs/agents/models/) |
-| Snowflake | snowflake-snowpark-python, snowflake-connector-python |
-| Terminal UI | Rich 13+, prompt_toolkit 3+ |
-| Validation | Pydantic 2.5+ |
-| Utilities | croniter, python-dateutil, GitPython |
-| Observability | OpenTelemetry SDK + OTLP HTTP exporter; Grafana Cloud (Tempo · Mimir · Loki) |
-
----
-
-## Setup
-
-### Prerequisites
-- Python 3.11.10
-- A Snowflake account with SYSADMIN or equivalent privileges
-- An API key for your chosen model provider (Google Gemini, OpenAI, or Anthropic Claude)
-
-### Install
-
-```bash
-# Clone and enter the repo
-git clone https://github.com/MalviyaPriyank/frosty.git
-cd frosty
-
-# Create virtual environment and install dependencies
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### Configure
-
-Create a `.env` file in the project root with the variables below.
-
-#### Snowflake Connection
-
-| Variable | Required | Description |
-|---|---|---|
-| `SNOWFLAKE_USER_NAME` | **Yes** | Your Snowflake login username |
-| `SNOWFLAKE_USER_PASSWORD` | **Yes** | Your Snowflake password |
-| `SNOWFLAKE_ACCOUNT_IDENTIFIER` | **Yes** | Your Snowflake account identifier (e.g. `xy12345.us-east-1`) |
-| `SNOWFLAKE_AUTHENTICATOR` | No | Auth method — see MFA & Session Caching below |
-| `SNOWFLAKE_ROLE` | No | Default role for the session (e.g. `SYSADMIN`); if unset, uses your account default |
-| `SNOWFLAKE_WAREHOUSE` | No | Default warehouse to activate at session start; if unset, uses your account default |
-| `SNOWFLAKE_DATABASE` | No | Default database context; if unset, uses your account default |
-
-#### MFA & Session Caching
-
-**DUO Push / TOTP**
-
-Set `SNOWFLAKE_AUTHENTICATOR=username_password_mfa` to enable Snowflake's MFA flow. Frosty detects the MFA method automatically:
-
-- **DUO Push** — when the first query runs, Snowflake silently sends a push notification to your enrolled device. Approve it in the DUO app and the CLI resumes automatically — no terminal prompt appears.
-- **TOTP (authenticator app)** — if your account requires a time-based one-time passcode, **the CLI will pause and display a prompt asking you to enter your code**. The code you type will not be visible (hidden input). Enter the current passcode from your authenticator app and press Enter. The flow will resume and the session will be cached — you will not be prompted again for the rest of the process.
-
-> **Note:** The terminal may appear frozen while waiting for your input. This is expected — look for the prompt `TOTP passcode:` and type your code.
-
-**Session cache**
-
-Frosty maintains a process-level session cache keyed by `(account, user, authenticator, role, warehouse, database)`. Before every tool call the cached session is validated with `SELECT 1`. If Snowflake has closed the connection (idle timeout, network drop, etc.) the cache entry is discarded and a fresh session is opened automatically — triggering one more DUO push or TOTP prompt if MFA is enabled.
-
-**Other authenticator values**
-
-| Value | When to use |
-|---|---|
-| *(unset)* | Standard username + password |
-| `username_password_mfa` | DUO push or TOTP |
-| `externalbrowser` | SSO / Okta / passkey — no password required, opens a browser tab on first connect (**untested** — see note below) |
-
-> **Note: `externalbrowser` is untested.** This authenticator requires a SAML Identity Provider (Okta, Azure AD, etc.) to be configured in your Snowflake account under **Admin → Security → Identity Providers**. Without one, you will get error `390190: There was an error related to the SAML Identity Provider account parameter`. If you hit this error, switch to `username_password_mfa` (DUO/TOTP) or leave `SNOWFLAKE_AUTHENTICATOR` unset for standard password auth.
-
-#### Application Identity
-
-| Variable | Required | Description |
-|---|---|---|
-| `APP_USER_NAME` | **Yes** | Display name shown in the session (can be any string, e.g. your name) |
-| `APP_USER_ID` | **Yes** | Unique user ID for session tracking (e.g. `user_001`) |
-| `APP_NAME` | **Yes** | Application name for session scoping (e.g. `frosty`) |
-
-#### Model Provider
-
-Set `MODEL_PROVIDER` to select your LLM backend. Defaults to `google`.
-
-| Variable | Required | Description |
-|---|---|---|
-| `MODEL_PROVIDER` | No | `google` (default) · `openai` · `anthropic` |
-| `GOOGLE_API_KEY` | If `google` | API key for Gemini models |
-| `OPENAI_API_KEY` | If `openai` | API key for OpenAI models |
-| `ANTHROPIC_API_KEY` | If `anthropic` | API key for Claude models |
-| `MODEL_PRIMARY` | No | Override the primary (fast) model. Defaults: `gemini-2.5-flash` · `openai/gpt-4o-mini` · `anthropic/claude-3-5-haiku-20241022` |
-| `MODEL_THINKING` | No | Override the thinking (reasoning) model. Defaults: `gemini-2.5-pro-preview-03-25` · `openai/gpt-4o` · `anthropic/claude-3-5-sonnet-20241022` |
-
-#### Debug
-
-| Variable | Required | Description |
-|---|---|---|
-| `FROSTY_DEBUG` | No | Set to `1` to print agent thinking, tool calls, and payloads |
-| `USE_SKILLS` | No | `true` (default) — agents consult SKILL.md reference docs before generating DDL. Set `false` to disable and rely on model knowledge only (fewer tokens, slightly faster) |
-
-#### Observability (OpenTelemetry + Grafana Cloud)
-
-Frosty has built-in OpenTelemetry instrumentation that is **off by default**. When `OTEL_ENABLED` is not set or is `false`, no OTel code runs and there is zero overhead. Set `OTEL_ENABLED=true` to export traces, metrics, and logs to any OTLP-compatible backend (Grafana Cloud, Tempo, Jaeger, etc.).
-
-**What gets instrumented:**
-
-| Signal | What is captured |
-|---|---|
-| **Traces** | One root span per user request (`frosty.user_request`); one span per agent model call (`agent.<name>`); one span per Snowflake query (`snowflake.execute_query`) with `db.statement`, `db.user`, `db.rows_returned` attributes |
-| **Metrics** | `frosty.queries.total`, `frosty.queries.errors`, `frosty.agent.invocations`, `frosty.query.duration_ms` |
-| **Logs** | All existing Python loggers (session, tools, config, pillar callbacks) bridged to the OTLP log exporter automatically |
-
-**Environment variables:**
-
-| Variable | Required | Description |
-|---|---|---|
-| `OTEL_ENABLED` | No | `true` to enable, `false` (default) to disable entirely |
-| `OTEL_SERVICE_NAME` | No | Service name shown in Grafana (default: `frosty`) |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | If enabled | Your OTLP gateway URL (e.g. `https://otlp-gateway-prod-us-east-3.grafana.net/otlp`) |
-| `OTEL_EXPORTER_OTLP_PROTOCOL` | No | `http/protobuf` (required for Grafana Cloud) |
-| `OTEL_EXPORTER_OTLP_HEADERS` | If enabled | Auth header from Grafana Cloud → Stack → OpenTelemetry. Python requires `Basic%20` instead of `Basic ` |
-
-**Getting your Grafana Cloud credentials:**
-
-1. Go to your Grafana Cloud stack → **Details** → **OpenTelemetry** section
-2. Generate a token with `metrics:write`, `logs:write`, `traces:write` scopes
-3. Copy the endpoint URL and the `Authorization=Basic%20<token>` header value shown on that page
-
-**Required packages** (already in `requirements.txt`):
-
-```bash
-pip install opentelemetry-api opentelemetry-sdk \
-            opentelemetry-exporter-otlp-proto-http \
-            opentelemetry-instrumentation-logging
-```
-
-**Viewing data in Grafana:**
-
-```
-Traces  → Explore → Data source: Tempo   → Service name: frosty_open_source
-Metrics → Explore → Data source: Prometheus → search "frosty_"
-Logs    → Explore → Data source: Loki    → Label: service_name = frosty_open_source
-```
-
-> **Note:** Metrics are exported on a 60-second interval. Type `exit` to quit Frosty rather than using Ctrl+C — this triggers a graceful flush of any buffered spans before the process ends.
-
-**Trace waterfall — full agent call tree for a single user request:**
-
-![Frosty trace waterfall in Grafana Tempo](docs/images/grafana_trace_waterfall.png)
-
-> Each row is a span: `invocation` → `invoke_agent CLOUD_DATA_ARCHITECT` → `call_llm` → `execute_tool DATA_ENGINEER` → `invoke_agent DATA_ENGINEER` → individual `agent.DATA_ENGINEER` spans with exact durations. This lets you pinpoint exactly where time is spent — LLM inference, agent routing, or Snowflake execution.
-
-#### Example `.env`
-
-```env
-# --- Snowflake ---
-SNOWFLAKE_USER_NAME=john.doe
-SNOWFLAKE_USER_PASSWORD=your_password
-SNOWFLAKE_ACCOUNT_IDENTIFIER=xy12345.us-east-1
-
-# SNOWFLAKE_AUTHENTICATOR=username_password_mfa   # uncomment for DUO/TOTP MFA
-# SNOWFLAKE_ROLE=SYSADMIN
-# SNOWFLAKE_WAREHOUSE=COMPUTE_WH
-# SNOWFLAKE_DATABASE=MY_DB
-
-# --- App identity ---
-APP_USER_NAME=John Doe
-APP_USER_ID=user_001
-APP_NAME=frosty
-
-# --- Model provider (default: Google Gemini) ---
-GOOGLE_API_KEY=your_google_api_key
-# MODEL_PROVIDER=openai
-# OPENAI_API_KEY=your_openai_api_key
-# MODEL_PROVIDER=anthropic
-# ANTHROPIC_API_KEY=your_anthropic_api_key
-
-# --- Observability / Grafana Cloud (optional) ---
-# OTEL_ENABLED=true
-# OTEL_SERVICE_NAME=frosty_open_source
-# OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-us-east-3.grafana.net/otlp
-# OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
-# OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic%20<your-base64-token>
-```
-
-### Run
-
-```bash
-python -m src.frosty_ai.objagents.main
-```
-
-Enable debug output:
-```bash
-FROSTY_DEBUG=1 python -m src.frosty_ai.objagents.main
-```
-
-### Agent Loading & Warm-up
-
-All 153 specialist agents are loaded **lazily** — nothing is imported at startup. As soon as the session starts, a background thread walks the entire agent tree level by level and imports each level in parallel, so agents warm up progressively while you work.
-
-In practice this means:
-- The first time a pillar is invoked in a session it may feel slightly slower while its module loads. The CLI will show: *"Loading {agent} for the first time in this session, may take some time..."*
-- Within a couple of minutes all agents are pre-warmed and subsequent calls are instant.
-
-To measure import times, run the included timing script from the project root:
-```bash
-python time_imports.py
-```
-Contributions to improve import performance are very welcome.
-
----
-
 ## How It Works
 
 1. **You type** a natural language request in the boxed input (e.g. *"Set up a data pipeline for S3 CSV ingestion"*)
@@ -729,6 +628,63 @@ Contributions to improve import performance are very welcome.
 5. **After every step**, the Manager validates success via `get_session_state` before proceeding
 6. **SQL panels** display every executed statement in real time
 7. **On exit**, all queries are saved to a `.sql` file
+
+### Stored Procedure Validation — Safe Two-Step Creation
+
+Frosty never writes a stored procedure directly. Every new or updated procedure goes through a mandatory two-step flow that validates syntax and logic before anything is committed to Snowflake:
+
+```
+  "create a stored procedure SP_LOAD_CUSTOMERS in CDC_PROCESSED.BRONZE"
+                    │
+                    ▼
+         Step 1 — create_and_validate_procedure (validation only)
+         ┌──────────────────────────────────────────────────────┐
+         │  Rewrites procedure name to a unique temp name       │
+         │  e.g. SP_LOAD_CUSTOMERS_FROSTY_VAL_3A2B1C4D         │
+         │                    │                                 │
+         │                    ▼                                 │
+         │  BEGIN                                               │
+         │    CREATE PROCEDURE <temp_name> (...)                │
+         │    CALL <temp_name>(sample_args)   ← dry-run test    │
+         │  ROLLBACK  ← always, pass or fail                    │
+         │                                                      │
+         │  Nothing persists in Snowflake                       │
+         └──────────────────────┬───────────────────────────────┘
+                                │
+                  ┌─────────────┴─────────────┐
+                  ▼                           ▼
+            syntax/logic error          validation passes
+            fix SQL, retry Step 1       proceed to Step 2
+                  │                            │
+         (5 consecutive failures)              ▼
+                  │                Step 2 — execute_query (real creation)
+                  ▼                ┌─────────────────────────────────────┐
+         RESEARCH_AGENT invoked    │  execute_query(validated_sql)        │
+         ┌────────────────────┐    │  CREATE OR REPLACE → approval prompt │
+         │ 1. check cache     │    │  CREATE IF NOT EXISTS → direct       │
+         │    (get_research_  │    └─────────────────────────────────────┘
+         │     results)       │                   │
+         │ 2. if not cached → │                   ▼
+         │    live web search │      Procedure created in Snowflake
+         │    for Snowflake   │
+         │    SQL docs        │
+         └────────┬───────────┘
+                  │ retry with fresh knowledge
+                  ▼
+            still failing after
+            5 more attempts?
+                  │
+                  ▼
+            ⚠ skip & report to user
+```
+
+**Why this matters:**
+
+- **No broken procedures** — syntax errors and runtime failures are caught before the real procedure is touched. If the dry-run CALL fails, nothing is changed in Snowflake.
+- **Safe for existing procedures** — the validation step uses a throwaway name so it never collides with or overwrites a live procedure, even when testing updates.
+- **Always rolled back** — the validation transaction is always rolled back regardless of outcome. The only thing that ever reaches Snowflake permanently is the final `execute_query` call in Step 2.
+- **Approval gate on replace** — if Step 2 uses `CREATE OR REPLACE`, the standard approval prompt fires before execution, giving you a final review of the validated SQL.
+- **Self-healing for complex procedures** — if the agent fails validation 5 consecutive times on a complex procedure, it automatically invokes the RESEARCH_AGENT to look up the latest Snowflake SQL docs from the web (checking a session cache first to avoid duplicate fetches), then retries with that fresh knowledge. If it still cannot produce a valid procedure after the research-backed retries, it stops and reports the error clearly so you can review it manually.
 
 ### Key Safety Rules
 - `DROP` is **unconditionally blocked** — no prompt, no override, never reaches Snowflake
@@ -748,6 +704,33 @@ for pattern in _hard_blocked:
     if pattern.upper() in query.upper():
         return {"success": False, "query": query, "message": f"Query blocked: '{pattern.strip()}' is not permitted."}
 ```
+
+### Agent Loading & Warm-up
+
+All 153 specialist agents are loaded **lazily** — nothing is imported at startup. As soon as the session starts, a background thread walks the entire agent tree level by level and imports each level in parallel, so agents warm up progressively while you work.
+
+In practice this means:
+- The first time a pillar is invoked in a session it may feel slightly slower while its module loads. The CLI will show: *"Loading {agent} for the first time in this session, may take some time..."*
+- Within a couple of minutes all agents are pre-warmed and subsequent calls are instant.
+
+To measure import times, run the included timing script from the project root:
+```bash
+python time_imports.py
+```
+Contributions to improve import performance are very welcome.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| AI Framework | Google ADK 1.18+; supports OpenAI, Claude, Gemini (2.5 Flash / 2.5 Pro) and [more](https://google.github.io/adk-docs/agents/models/) |
+| Snowflake | snowflake-snowpark-python, snowflake-connector-python |
+| Terminal UI | Rich 13+, prompt_toolkit 3+ |
+| Validation | Pydantic 2.5+ |
+| Utilities | croniter, python-dateutil, GitPython |
+| Observability | OpenTelemetry SDK + OTLP HTTP exporter; Grafana Cloud (Tempo · Mimir · Loki) |
 
 ---
 
