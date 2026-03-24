@@ -34,7 +34,7 @@ def create_and_validate_procedure(
     database_name: str,
     schema_name: str,
     procedure_name: str,
-    sample_args: list,
+    sample_args: list[str],
     tool_context: ToolContext,
 ) -> dict:
     """
