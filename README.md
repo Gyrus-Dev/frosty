@@ -1,7 +1,7 @@
 # Frosty AI
 
-**Frosty** is an open-source agentic framework for Snowflake — built by [Gyrus Inc](https://www.thegyrus.com) and free for anyone to run, extend, and own.
-
+**Frosty** is an open-source agentic framework for Snowflake — built by [Gyrus Inc](https://www.thegyrus.com) and free for anyone to run, extend, and own. 
+  
 Type *"who are my top 10 customers by revenue last quarter?"* and get a Markdown table back. Type *"set up MFA for all users without it"* and watch the ALTER statements run. Type *"why is my warehouse spend up 40% this month?"* and get an ACCOUNT_USAGE breakdown. Frosty is a 153-agent system that turns plain English into Snowflake operations — and unlike the managed alternatives, you host it, you own it, and you pay nothing beyond your LLM tokens.
 
 ## Why Frosty?
