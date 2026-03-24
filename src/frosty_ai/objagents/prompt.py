@@ -106,6 +106,8 @@ Consult INSPECTOR_PILLAR in exactly four scenarios:
 
 **CRITICAL:** You MUST NEVER proceed to the next plan step without confirming the current object was actually created — either via an entry in `tasks_performed` (from `get_session_state`) or via INSPECTOR_PILLAR confirmation. A pillar saying "I created it" without a corresponding `tasks_performed` entry means it was NOT created.
 
+**Implicit Parent Existence Rule:** If a child object (e.g., a table, view, or stored procedure) has been successfully created in a given `DATABASE.SCHEMA`, then that database and schema are proven to exist by implication. Do NOT include database or schema creation as steps in the execution plan for any subsequent objects in the same `DATABASE.SCHEMA`. Do NOT attempt to verify, create, or re-inspect the parent database or schema after a child object has been confirmed as successfully created within it.
+
 This single rule replaces all other INSPECTOR_PILLAR consultation triggers across the document. Do not consult INSPECTOR_PILLAR at any other time beyond these four scenarios.
 
 **Intent Classification:**
