@@ -67,6 +67,10 @@ All from natural language, in minutes.
 | 💬 **Natural language all the way** | Query data, profile tables, generate synthetic rows, build Streamlit dashboards, and inspect costs — all from plain English. |
 
 > Want to see it in action? [Schedule a demo →](mailto:priyank@thegyrus.com)
+>
+> ##### Example Snapshot of Insepctor Pillar
+> <img width="1469" height="456" alt="image" src="https://github.com/user-attachments/assets/d3af4740-9092-43ef-9b0b-c8e5fd567cad" />
+
 
 ---
 
@@ -299,6 +303,10 @@ If the specialist cannot resolve something from its reference docs, it delegates
   All others     →  DuckDuckGo · top 5 results (configurable in research/tools.py)
 ```
 
+##### Example Snapshot of web search 
+<img width="1437" height="799" alt="image" src="https://github.com/user-attachments/assets/c4c29858-4257-413f-92e6-0a5e7ad0208e" />
+
+
 ---
 
 ### 🤔 Thinking & Reasoning (Gemini only)
@@ -398,7 +406,7 @@ Tags · Contacts · Masking Policies · Privacy Policies · Projection Policies 
 ### Prerequisites
 
 - Python 3.11.10
-- A Snowflake account with SYSADMIN or equivalent privileges
+- A Snowflake account 
 - An API key for your chosen model provider
 
 ### Install
