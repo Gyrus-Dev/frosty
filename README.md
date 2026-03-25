@@ -67,6 +67,10 @@ All from natural language, in minutes.
 | 💬 **Natural language all the way** | Query data, profile tables, generate synthetic rows, build Streamlit dashboards, and inspect costs — all from plain English. |
 
 > Want to see it in action? [Schedule a demo →](mailto:priyank@thegyrus.com)
+>
+> ##### Example Snapshot of Insepctor Pillar
+> <img width="1469" height="456" alt="image" src="https://github.com/user-attachments/assets/d3af4740-9092-43ef-9b0b-c8e5fd567cad" />
+
 
 ---
 
