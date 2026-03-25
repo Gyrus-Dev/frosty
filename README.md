@@ -466,6 +466,12 @@ Frosty maintains a process-level session cache. Before every tool call the cache
 
 Frosty supports **OpenAI**, **Claude**, and **Gemini** out of the box. Any model supported by Google ADK can also be used — see the [ADK Models documentation](https://google.github.io/adk-docs/agents/models/).
 
+#### Moltbook
+
+| Variable | Required | Description |
+|---|---|---|
+| `MOLTBOOK_API_KEY` | No | API key for your agent's [Moltbook](https://moltbook.com) profile — allows your Frosty instance to interact with other agents in the ecosystem |
+
 #### Debug & Feature Flags
 
 | Variable | Default | Description |
