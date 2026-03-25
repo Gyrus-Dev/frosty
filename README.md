@@ -47,6 +47,13 @@ Unlike managed alternatives, **you host it, you own it, and you pay nothing beyo
 
 Building a real-time ingestion pipeline with 100 Snowflake objects — tables, streams, tasks, stages, roles, and policies — would take a team of engineers weeks. Frosty does it in under an hour.
 
+Beyond building infrastructure, Frosty handles the full lifecycle:
+- **Security hardening** (password policies, network rules, MFA enforcement) — so your environment is locked down from day one, not as an afterthought
+- **Cost governance** (warehouse sizing, credit monitoring, spend alerts) — so you stay in control of your Snowflake bill as you scale
+- **Data governance** (tagging, masking policies, row-level access) — so the right people see the right data, with full audit trails
+
+All from natural language, in minutes.
+
 | | |
 |---|---|
 | 🏠 **Self-hosted** | Agents run in your environment. Credentials never leave your machine. Every line of logic is readable and modifiable. |
