@@ -303,6 +303,10 @@ If the specialist cannot resolve something from its reference docs, it delegates
   All others     →  DuckDuckGo · top 5 results (configurable in research/tools.py)
 ```
 
+##### Example Snapshot of web search 
+<img width="1437" height="799" alt="image" src="https://github.com/user-attachments/assets/c4c29858-4257-413f-92e6-0a5e7ad0208e" />
+
+
 ---
 
 ### 🤔 Thinking & Reasoning (Gemini only)
