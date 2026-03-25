@@ -41,6 +41,9 @@ Frosty is a **153-agent system** built by [Gyrus Inc](https://www.thegyrus.com) 
 
 Unlike other AI tooling for Snowflake, **you host it, you own it, and you pay nothing beyond your LLM tokens** — no additional SaaS platform, no per-seat fees, no extra subscriptions.
 
+<img width="1469" height="265" alt="image" src="https://github.com/user-attachments/assets/38e3aa56-65ab-4ef0-adb9-72af683f9625" />
+
+
 ---
 
 ## Why Frosty?
