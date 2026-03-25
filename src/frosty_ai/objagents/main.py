@@ -467,13 +467,10 @@ async def interactive():
         logger.debug("interactive: got response, new queries=%d total_queries=%d", len(queries), len(session_queries) + len(queries))
         _console.print()
         main_text, question = _extract_question(response)
-        summary, options_text = _extract_options(main_text)
-        _console.print(Panel(Markdown(summary), title="[bold blue]Frosty AI[/bold blue]", border_style="blue", padding=(1, 2)))
+        full_response = "\n\n".join(part for part in (main_text, question) if part)
+        _console.print(Panel(Markdown(full_response), title="[bold blue]Frosty AI[/bold blue]", border_style="blue", padding=(1, 2)))
         if queries:
             _print_queries_panel(queries)
-        bottom = "\n\n".join(part for part in (options_text, question) if part)
-        if bottom:
-            _console.print(Panel(Markdown(bottom), border_style="yellow", padding=(0, 2)))
         chat_history.append({"role": "user", "content": user_input})
         chat_history.append({"role": "assistant", "content": response})
         session_queries.extend(queries)
