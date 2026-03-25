@@ -1,7 +1,11 @@
 # Frosty AI
 
 **Frosty** is an open-source agentic framework for Snowflake — built by [Gyrus Inc](https://www.thegyrus.com) and free for anyone to run, extend, and own. 
-  
+
+<img width="1469" height="544" alt="image" src="https://github.com/user-attachments/assets/c0db4c61-656a-40ef-b792-2128cd70e5b6" />
+
+
+
 Type *"who are my top 10 customers by revenue last quarter?"* and get a Markdown table back. Type *"set up MFA for all users without it"* and watch the ALTER statements run. Type *"why is my warehouse spend up 40% this month?"* and get an ACCOUNT_USAGE breakdown. Frosty is a 153-agent system that turns plain English into Snowflake operations — and unlike the managed alternatives, you host it, you own it, and you pay nothing beyond your LLM tokens.
 
 ## Why Frosty?
@@ -28,7 +32,10 @@ Query your data, profile tables, generate synthetic rows, build Streamlit dashbo
 
 ### Understands your entire Snowflake environment before it acts
 
-Before executing anything, the CLOUD_DATA_ARCHITECT routes through the INSPECTOR_PILLAR — 56 read-only specialists that map your live databases, schemas, tables, roles, warehouses, pipelines, and policies. Every plan is grounded in what actually exists in your account, not what the model assumes. The result is a fully context-aware system — Frosty understands the complete state of your environment before taking any action, every inference is visible and inspectable, and nothing is hidden behind a managed layer or limited to what a platform chooses to expose.
+Before executing anything, the CLOUD_DATA_ARCHITECT routes through the INSPECTOR_PILLAR — 56 read-only specialists that map your live databases, schemas, tables, roles, warehouses, pipelines, and policies. Every plan is grounded in what actually exists in your account, not what the model assumes. The result is a fully context-aware system — Frosty understands the complete state of your environment before taking any action, every inference is visible and inspectable, and nothing is hidden behind a managed layer.
+
+<img width="886" height="249" alt="image" src="https://github.com/user-attachments/assets/a1f5fa31-a14c-4f9a-842a-1587fd098e88" />
+
 
 ### Build your own analyst service
 
@@ -142,6 +149,9 @@ Because Layer 2 is code — not a prompt — it cannot be bypassed by prompt inj
 ## Spotlight Features
 
 ### Web Search & Research Agent
+
+<img width="1467" height="95" alt="image" src="https://github.com/user-attachments/assets/16604498-ff71-4ea7-83fe-16a7e62f33de" />
+
 
 Specialist agents follow a two-step knowledge hierarchy before generating any DDL or query:
 
@@ -368,6 +378,8 @@ Frosty never writes a stored procedure directly. Every new or updated procedure 
 
 ### Synthetic Data Generation
 
+
+
 Ask Frosty to populate any table with realistic sample data and it will inspect the table structure first before writing a single row:
 
 ```
@@ -389,6 +401,10 @@ Ask Frosty to populate any table with realistic sample data and it will inspect 
       VALUES (realistic row 1),
              (realistic row 2), …
 ```
+
+##### Example Snapshot
+<img width="1467" height="819" alt="image" src="https://github.com/user-attachments/assets/2b2ce1d5-962c-49b8-b5c2-356293db31d4" />
+
 
 Frosty never invents column names — `DESCRIBE TABLE` is the single source of truth. Values are contextually appropriate: an `EMAIL` column gets valid email addresses, a `STATUS` column gets domain-specific enum values, `VARIANT` columns get minimal valid JSON, and so on.
 
@@ -596,6 +612,9 @@ Set `SNOWFLAKE_AUTHENTICATOR=username_password_mfa` to enable Snowflake's MFA fl
 
 - **DUO Push** — when the first query runs, Snowflake silently sends a push notification to your enrolled device. Approve it in the DUO app and the CLI resumes automatically — no terminal prompt appears.
 - **TOTP (authenticator app)** — if your account requires a time-based one-time passcode, **the CLI will pause and display a prompt asking you to enter your code**. The code you type will not be visible (hidden input). Enter the current passcode from your authenticator app and press Enter. The flow will resume and the session will be cached — you will not be prompted again for the rest of the process.
+
+- <img width="673" height="163" alt="image" src="https://github.com/user-attachments/assets/d95e83d2-45b1-4cc4-aa02-83e40f1f324d" />
+
 
 > **Note:** The terminal may appear frozen while waiting for your input. This is expected — look for the prompt `TOTP passcode:` and type your code.
 
