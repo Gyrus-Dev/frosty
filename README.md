@@ -658,6 +658,7 @@ Interested in a demo, want to discuss your Snowflake setup, or just have questio
 
 - 📧 General enquiries: [info@thegyrus.com](mailto:info@thegyrus.com)
 - 📧 Priyank (co-founder): [priyank@thegyrus.com](mailto:priyank@thegyrus.com)
+- 📅 Book a call: [Schedule time with Priyank](https://calendar.app.google/LtgREjn9kx1zNqn1A)
 
 ---
 
