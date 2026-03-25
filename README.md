@@ -26,6 +26,10 @@ Frosty works with OpenAI, Anthropic Claude, and Google Gemini out of the box, an
 
 `DROP` statements are blocked unconditionally — at both the prompt level and in code. `CREATE OR REPLACE` is allowed but requires explicit terminal approval before any query reaches Snowflake: when an agent generates one, execution pauses, the full statement is shown, and you type `yes` or `no` to proceed or abort. Operations execute one at a time, in dependency order, with the manager validating each step before proceeding.
 
+##### Example Snapshot of approval for Create or Replace statement
+<img width="1469" height="119" alt="image" src="https://github.com/user-attachments/assets/d8939249-ad80-4786-b90f-c81320433660" />
+
+
 ### Natural language all the way down
 
 Query your data, profile tables, generate synthetic rows, build Streamlit dashboards, inspect infrastructure costs — all from plain English. No SQL required for day-to-day operations.
@@ -34,6 +38,7 @@ Query your data, profile tables, generate synthetic rows, build Streamlit dashbo
 
 Before executing anything, the CLOUD_DATA_ARCHITECT routes through the INSPECTOR_PILLAR — 56 read-only specialists that map your live databases, schemas, tables, roles, warehouses, pipelines, and policies. Every plan is grounded in what actually exists in your account, not what the model assumes. The result is a fully context-aware system — Frosty understands the complete state of your environment before taking any action, every inference is visible and inspectable, and nothing is hidden behind a managed layer.
 
+##### Example Snapshot
 <img width="886" height="249" alt="image" src="https://github.com/user-attachments/assets/a1f5fa31-a14c-4f9a-842a-1587fd098e88" />
 
 
@@ -150,6 +155,7 @@ Because Layer 2 is code — not a prompt — it cannot be bypassed by prompt inj
 
 ### Web Search & Research Agent
 
+##### Example Snapshot
 <img width="1467" height="95" alt="image" src="https://github.com/user-attachments/assets/16604498-ff71-4ea7-83fe-16a7e62f33de" />
 
 
