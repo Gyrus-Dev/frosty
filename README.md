@@ -440,6 +440,9 @@ Set `SNOWFLAKE_AUTHENTICATOR=username_password_mfa` to enable Snowflake's MFA fl
 - **DUO Push** — Snowflake sends a push notification on the first query. Approve it in the DUO app; the CLI resumes automatically.
 - **TOTP** — The CLI pauses and displays a `TOTP passcode:` prompt (hidden input). Enter the code from your authenticator app and press Enter.
 
+<img width="712" height="125" alt="image" src="https://github.com/user-attachments/assets/2a665795-8d8e-4923-8389-425deb6b7f15" />
+
+
 Frosty maintains a process-level session cache. Before every tool call the cached session is validated with `SELECT 1` — if Snowflake has closed the connection, a fresh session is opened automatically.
 
 | Authenticator value | When to use |
