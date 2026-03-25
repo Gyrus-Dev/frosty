@@ -399,7 +399,13 @@ pip install -r requirements.txt
 
 ### Configure
 
-Create a `.env` file in the project root.
+Create a `.env` file in the project root by copying the provided template:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in your values — refer to `.env.example` for all available variables and their descriptions.
 
 #### Snowflake Connection
 
