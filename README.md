@@ -18,7 +18,7 @@
 [![Agents](https://img.shields.io/badge/agents-153%20specialists-orange)](#architecture)
 [![Snowflake](https://img.shields.io/badge/built%20for-Snowflake-29B5E8?logo=snowflake)](https://www.snowflake.com/)
 
-[**Quick Start**](#quick-start) · [**Features**](#spotlight-features) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Safety**](#safety) · [**Contributing**](#contributing)
+[**Quick Start**](#quick-start) · [**Features**](#spotlight-features) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Safety**](#safety) · [**Contributing**](#contributing) · [**Get in Touch**](#get-in-touch)
 
 </div>
 
@@ -39,11 +39,23 @@ Frosty is a **153-agent system** built by [Gyrus Inc](https://www.thegyrus.com) 
   → Queries ACCOUNT_USAGE and gives you an itemized breakdown
 ```
 
-Unlike managed alternatives, **you host it, you own it, and you pay nothing beyond your LLM tokens** — no SaaS platform, no per-seat fees, no vendor lock-in.
+Unlike other AI tooling for Snowflake, **you host it, you own it, and you pay nothing beyond your LLM tokens** — no additional SaaS platform, no per-seat fees, no extra subscriptions.
+
+<img width="1469" height="265" alt="image" src="https://github.com/user-attachments/assets/38e3aa56-65ab-4ef0-adb9-72af683f9625" />
+
 
 ---
 
 ## Why Frosty?
+
+Building a real-time ingestion pipeline with 100 Snowflake objects — tables, streams, tasks, stages, roles, and policies — is a significant engineering undertaking. Frosty compresses that effort from weeks to under an hour.
+
+Beyond building infrastructure, Frosty helps you get the most out of Snowflake across the full lifecycle:
+- **Security hardening** (password policies, network rules, MFA enforcement) — so your environment is production-ready from day one
+- **Cost governance** (warehouse sizing, credit monitoring, spend alerts) — so you have full visibility and control over your Snowflake spend as you scale
+- **Data governance** (tagging, masking policies, row-level access) — so the right people see the right data, with full audit trails
+
+All from natural language, in minutes.
 
 | | |
 |---|---|
@@ -53,6 +65,8 @@ Unlike managed alternatives, **you host it, you own it, and you pay nothing beyo
 | 🛡️ **Safe by design** | `DROP` is unconditionally blocked in code. `CREATE OR REPLACE` requires explicit terminal approval. No parallel execution — one object at a time, in dependency order. |
 | 🔍 **Context-aware** | The INSPECTOR_PILLAR (56 read-only agents) maps your live environment before any plan is executed — no assumptions, no hallucinated object names. |
 | 💬 **Natural language all the way** | Query data, profile tables, generate synthetic rows, build Streamlit dashboards, and inspect costs — all from plain English. |
+
+> Want to see it in action? [Schedule a demo →](mailto:priyank@thegyrus.com)
 
 ---
 
@@ -399,7 +413,13 @@ pip install -r requirements.txt
 
 ### Configure
 
-Create a `.env` file in the project root.
+Create a `.env` file in the project root by copying the provided template:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in your values — refer to `.env.example` for all available variables and their descriptions.
 
 #### Snowflake Connection
 
@@ -419,6 +439,9 @@ Set `SNOWFLAKE_AUTHENTICATOR=username_password_mfa` to enable Snowflake's MFA fl
 
 - **DUO Push** — Snowflake sends a push notification on the first query. Approve it in the DUO app; the CLI resumes automatically.
 - **TOTP** — The CLI pauses and displays a `TOTP passcode:` prompt (hidden input). Enter the code from your authenticator app and press Enter.
+
+<img width="712" height="125" alt="image" src="https://github.com/user-attachments/assets/2a665795-8d8e-4923-8389-425deb6b7f15" />
+
 
 Frosty maintains a process-level session cache. Before every tool call the cached session is validated with `SELECT 1` — if Snowflake has closed the connection, a fresh session is opened automatically.
 
@@ -448,6 +471,12 @@ Frosty maintains a process-level session cache. Before every tool call the cache
 | `MODEL_THINKING` | No | Override the reasoning model. Defaults: `gemini-2.5-pro-preview-03-25` · `gpt-4o` · `claude-3-5-sonnet-20241022` |
 
 Frosty supports **OpenAI**, **Claude**, and **Gemini** out of the box. Any model supported by Google ADK can also be used — see the [ADK Models documentation](https://google.github.io/adk-docs/agents/models/).
+
+#### Moltbook
+
+| Variable | Required | Description |
+|---|---|---|
+| `MOLTBOOK_API_KEY` | No | API key for your agent's [Moltbook](https://moltbook.com) profile — allows your Frosty instance to interact with other agents in the ecosystem |
 
 #### Debug & Feature Flags
 
@@ -629,9 +658,31 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for a guide on adding specialist agents, 
 
 ---
 
+## Build Your Own Frosty
+
+Frosty is designed to be extended. Fork it, specialize it for your domain — retail, finance, healthcare, logistics — and give your agent a social identity on **[Moltbook](https://moltbook.com)**, the social network for AI agents, where it can discover and interact with other agents in the ecosystem.
+
+Whether it's a finance-focused Snowflake bot, a security-hardening specialist, or a fully custom data platform agent — the architecture is yours to build on.
+
+If you build on Frosty, we'd love it if your agent tags **[#Frosty](https://moltbook.com/u/frostyai)** on its Moltbook profile — it helps the community find and connect with agents in the Frosty ecosystem.
+
+Share what you build: [priyank@thegyrus.com](mailto:priyank@thegyrus.com)
+
+---
+
 ## Enterprise
 
-For enterprise features and managed hosting — including persistent sessions and long-term memory out of the box — visit [thegyrus.com](https://www.thegyrus.com).
+For enterprise features and managed hosting — including persistent sessions and long-term memory out of the box — visit [thegyrus.com](https://www.thegyrus.com) or [get in touch](#get-in-touch).
+
+---
+
+## Get in Touch
+
+Interested in a demo, want to discuss your Snowflake setup, or just have questions?
+
+- 📧 General enquiries: [info@thegyrus.com](mailto:info@thegyrus.com)
+- 📧 Priyank (co-founder): [priyank@thegyrus.com](mailto:priyank@thegyrus.com)
+- 📅 Book a call: [Schedule time with Priyank](https://calendar.app.google/LtgREjn9kx1zNqn1A)
 
 ---
 
