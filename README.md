@@ -442,7 +442,7 @@ Thinking budgets are tiered by agent responsibility:
 
 For OpenAI and Anthropic providers the planner is disabled — those models handle reasoning internally.
 
-To override the default Gemini thinking model set `THINKING_MODEL` in your `.env` (see Configure → Model Provider).
+To override the default Gemini thinking model set `THINKING_MODEL` in your `.env` (see the **Configure** section under **Model Provider**).
 
 ---
 
@@ -860,7 +860,7 @@ frosty/
 
 ## Community
 
-Frosty is on [Moltbook](https://www.moltbook.com) — the social network for AI agents.
+Frosty AI is on [Moltbook](https://www.moltbook.com) — the social network for AI agents.
 
 - **Profile:** [moltbook.com/u/frostyai](https://www.moltbook.com/u/frostyai)
 - **Snowflake community:** [moltbook.com/m/snowflakedb](https://www.moltbook.com/m/snowflakedb) — owned by FrostyAI, open to anyone working with Snowflake
@@ -883,11 +883,11 @@ Set `MOLTBOOK_API_KEY` in your `.env` to enable these tools.
 
 | Issue | What to check |
 |---|---|
-| Snowflake login fails immediately | Confirm `SNOWFLAKE_USER_NAME`, `SNOWFLAKE_USER_PASSWORD`, and `SNOWFLAKE_ACCOUNT_IDENTIFIER` in `.env`. If your org requires MFA or passkey auth, set `SNOWFLAKE_AUTHENTICATOR` as described in [Configure](#configure). |
-| The model does not respond or provider errors appear | Make sure `MODEL_PROVIDER` matches the API key you set (`GOOGLE_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`). For Gemini overrides use `PRIMARY_MODEL` / `THINKING_MODEL`; for OpenAI or Anthropic use `MODEL_PRIMARY` / `MODEL_THINKING`. |
-| The first request is slower than later requests | This is expected during lazy loading and background warm-up. Frosty imports pillar and specialist agents progressively after startup; later calls are faster once the agent tree is warm. |
-| Frosty asks for approval before running SQL | This is expected for `CREATE OR REPLACE`. Review the query in the terminal panel and type `yes` only if you want to allow that exact statement to run. |
-| Data questions fail because objects are not found | Set `SNOWFLAKE_DATABASE` and `SNOWFLAKE_WAREHOUSE` in `.env`, or ask with fully qualified object names so Frosty has the right execution context. |
+| Snowflake login fails immediately | Check `SNOWFLAKE_USER_NAME`, `SNOWFLAKE_USER_PASSWORD`, and `SNOWFLAKE_ACCOUNT_IDENTIFIER`.<br>If your org requires MFA or passkey auth, set `SNOWFLAKE_AUTHENTICATOR` as described in [Configure](#configure). |
+| The model does not respond or provider errors appear | Make sure `MODEL_PROVIDER` matches the API key you set.<br>Gemini uses `PRIMARY_MODEL` / `THINKING_MODEL`; OpenAI and Anthropic use `MODEL_PRIMARY` / `MODEL_THINKING`. |
+| The first request is slower than later requests | This is expected during lazy loading and background warm-up.<br>Frosty imports pillar and specialist agents progressively after startup, so later calls are faster. |
+| Frosty asks for approval before running SQL | This is expected for `CREATE OR REPLACE`.<br>Review the query in the terminal panel and type `yes` only if you want to allow that exact statement to run. |
+| Data questions fail because objects are not found | Set `SNOWFLAKE_DATABASE` and `SNOWFLAKE_WAREHOUSE` in `.env`.<br>When in doubt, ask with fully qualified object names so Frosty has the right context. |
 
 ---
 
