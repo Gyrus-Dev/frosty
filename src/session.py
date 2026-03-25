@@ -199,10 +199,10 @@ class Session:
             cached = _session_cache[cache_key]
             try:
                 cached.sql("SELECT 1").collect()
-                logger.info("Reusing cached Snowflake session for user=%s account=%s", self.attr.user, self.attr.account)
+                logger.debug("Reusing cached Snowflake session for user=%s account=%s", self.attr.user, self.attr.account)
                 return cached
             except Exception:
-                logger.info("Cached session expired, creating a new one")
+                logger.debug("Cached session expired, creating a new one")
                 del _session_cache[cache_key]
 
         logger.info("━━━ Snowflake connection params ━━━")
@@ -241,7 +241,7 @@ class Session:
 
         _session_cache[cache_key] = session
         self.set_session(session)
-        logger.info("Snowflake session created and cached for user=%s account=%s", self.attr.user, self.attr.account)
+        logger.debug("Snowflake session created and cached for user=%s account=%s", self.attr.user, self.attr.account)
         return self.attr.session
     
     def get_root_object(self):
