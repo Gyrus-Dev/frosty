@@ -45,6 +45,8 @@ Unlike managed alternatives, **you host it, you own it, and you pay nothing beyo
 
 ## Why Frosty?
 
+Building a real-time ingestion pipeline with 100 Snowflake objects — tables, streams, tasks, stages, roles, and policies — would take a team of engineers weeks. Frosty does it in under an hour.
+
 | | |
 |---|---|
 | 🏠 **Self-hosted** | Agents run in your environment. Credentials never leave your machine. Every line of logic is readable and modifiable. |
@@ -399,7 +401,13 @@ pip install -r requirements.txt
 
 ### Configure
 
-Create a `.env` file in the project root.
+Create a `.env` file in the project root by copying the provided template:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in your values — refer to `.env.example` for all available variables and their descriptions.
 
 #### Snowflake Connection
 
