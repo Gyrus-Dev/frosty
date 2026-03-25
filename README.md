@@ -18,7 +18,7 @@
 [![Agents](https://img.shields.io/badge/agents-153%20specialists-orange)](#architecture)
 [![Snowflake](https://img.shields.io/badge/built%20for-Snowflake-29B5E8?logo=snowflake)](https://www.snowflake.com/)
 
-[**Quick Start**](#quick-start) · [**Features**](#spotlight-features) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Safety**](#safety) · [**Contributing**](#contributing)
+[**Quick Start**](#quick-start) · [**Features**](#spotlight-features) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Safety**](#safety) · [**Contributing**](#contributing) · [**Get in Touch**](#get-in-touch)
 
 </div>
 
@@ -62,6 +62,8 @@ All from natural language, in minutes.
 | 🛡️ **Safe by design** | `DROP` is unconditionally blocked in code. `CREATE OR REPLACE` requires explicit terminal approval. No parallel execution — one object at a time, in dependency order. |
 | 🔍 **Context-aware** | The INSPECTOR_PILLAR (56 read-only agents) maps your live environment before any plan is executed — no assumptions, no hallucinated object names. |
 | 💬 **Natural language all the way** | Query data, profile tables, generate synthetic rows, build Streamlit dashboards, and inspect costs — all from plain English. |
+
+> Want to see it in action? [Schedule a demo →](mailto:priyank@thegyrus.com)
 
 ---
 
@@ -646,7 +648,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for a guide on adding specialist agents, 
 
 ## Enterprise
 
-For enterprise features and managed hosting — including persistent sessions and long-term memory out of the box — visit [thegyrus.com](https://www.thegyrus.com).
+For enterprise features and managed hosting — including persistent sessions and long-term memory out of the box — visit [thegyrus.com](https://www.thegyrus.com) or [get in touch](#get-in-touch).
+
+---
+
+## Get in Touch
+
+Interested in a demo, want to discuss your Snowflake setup, or just have questions?
+
+- 📧 General enquiries: [info@thegyrus.com](mailto:info@thegyrus.com)
+- 📧 Priyank (co-founder): [priyank@thegyrus.com](mailto:priyank@thegyrus.com)
 
 ---
 
