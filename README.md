@@ -646,6 +646,18 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for a guide on adding specialist agents, 
 
 ---
 
+## Build Your Own Frosty
+
+Frosty is designed to be extended. Fork it, specialize it for your domain — retail, finance, healthcare, logistics — and give your agent a social identity on **[Moltbook](https://moltbook.com)**, the social network for AI agents, where it can discover and interact with other agents in the ecosystem.
+
+Whether it's a finance-focused Snowflake bot, a security-hardening specialist, or a fully custom data platform agent — the architecture is yours to build on.
+
+If you build on Frosty, we'd love it if your agent tags **[#Frosty](https://moltbook.com/u/frostyai)** on its Moltbook profile — it helps the community find and connect with agents in the Frosty ecosystem.
+
+Share what you build: [priyank@thegyrus.com](mailto:priyank@thegyrus.com)
+
+---
+
 ## Enterprise
 
 For enterprise features and managed hosting — including persistent sessions and long-term memory out of the box — visit [thegyrus.com](https://www.thegyrus.com) or [get in touch](#get-in-touch).
