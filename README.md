@@ -39,17 +39,17 @@ Frosty is a **153-agent system** built by [Gyrus Inc](https://www.thegyrus.com) 
   → Queries ACCOUNT_USAGE and gives you an itemized breakdown
 ```
 
-Unlike managed alternatives, **you host it, you own it, and you pay nothing beyond your LLM tokens** — no SaaS platform, no per-seat fees, no vendor lock-in.
+Unlike other AI tooling for Snowflake, **you host it, you own it, and you pay nothing beyond your LLM tokens** — no additional SaaS platform, no per-seat fees, no extra subscriptions.
 
 ---
 
 ## Why Frosty?
 
-Building a real-time ingestion pipeline with 100 Snowflake objects — tables, streams, tasks, stages, roles, and policies — would take a team of engineers weeks. Frosty does it in under an hour.
+Building a real-time ingestion pipeline with 100 Snowflake objects — tables, streams, tasks, stages, roles, and policies — is a significant engineering undertaking. Frosty compresses that effort from weeks to under an hour.
 
-Beyond building infrastructure, Frosty handles the full lifecycle:
-- **Security hardening** (password policies, network rules, MFA enforcement) — so your environment is locked down from day one, not as an afterthought
-- **Cost governance** (warehouse sizing, credit monitoring, spend alerts) — so you stay in control of your Snowflake bill as you scale
+Beyond building infrastructure, Frosty helps you get the most out of Snowflake across the full lifecycle:
+- **Security hardening** (password policies, network rules, MFA enforcement) — so your environment is production-ready from day one
+- **Cost governance** (warehouse sizing, credit monitoring, spend alerts) — so you have full visibility and control over your Snowflake spend as you scale
 - **Data governance** (tagging, masking policies, row-level access) — so the right people see the right data, with full audit trails
 
 All from natural language, in minutes.
