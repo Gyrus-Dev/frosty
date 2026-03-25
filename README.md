@@ -406,7 +406,7 @@ Tags · Contacts · Masking Policies · Privacy Policies · Projection Policies 
 ### Prerequisites
 
 - Python 3.11.10
-- A Snowflake account with SYSADMIN or equivalent privileges
+- A Snowflake account 
 - An API key for your chosen model provider
 
 ### Install
