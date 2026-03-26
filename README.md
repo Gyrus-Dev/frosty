@@ -20,6 +20,8 @@
 
 [**Quick Start**](#quick-start) · [**Features**](#spotlight-features) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Safety**](#safety) · [**Contributing**](#contributing) · [**Get in Touch**](#get-in-touch)
 
+If you find Frosty useful, please consider giving it a ⭐ — it helps others discover the project!
+
 </div>
 
 ---
