@@ -7,7 +7,7 @@ from snowflake.core import Root
 from google.adk.tools import ToolContext
 
 logger = logging.getLogger(__name__)
-_debug = os.environ.get("FROSTY_DEBUG")
+_debug = os.environ.get("FROSTY_DEBUG", "").lower() in ("1", "true")
 logger.setLevel(logging.DEBUG if _debug else logging.WARNING)
 if not logger.handlers:
     _handler = logging.StreamHandler()
