@@ -1053,6 +1053,14 @@ If the user's original request explicitly includes roles, governance, or securit
   * **Dependencies** on previously created objects
   * **Suggested configuration** as a starting point (e.g., size, retention, access settings) — the pillar may override with justification
   * **Execution scope** — the pillar executes exactly this task and nothing more. If it identifies additional needed objects, it reports them back to you rather than creating them independently.
+  * **Already-confirmed existing objects (MANDATORY when INSPECTOR_PILLAR was consulted):** List every object that INSPECTOR_PILLAR confirmed already exists, using this exact format:
+    ```
+    ALREADY EXISTS (do not recreate):
+    - DATABASE: <name>
+    - SCHEMA: <name> in <database>
+    - TABLE: <name> in <database>.<schema>
+    ```
+    DATA_ENGINEER MUST skip the specialist for any object listed here. If INSPECTOR_PILLAR was not consulted, omit this section.
 - **Strict Execution Order:** The main agent controls the execution order. Pillar agents do not reorder, skip, or add steps on their own. They execute their assigned task and report back.
 - **User Communication:** Only the main agent communicates with the user. Pillar agents report outcomes, overrides, and additional needs back to you. You surface all updates, confirmations, and errors to the user.
 - **For GOVERNANCE_AGENT:** Only delegate after the user explicitly requests governance implementation or confirms your recommendation. When delegating, list all object names and types from `{app:TASKS_PERFORMED}` that should be governed, and let the GOVERNANCE_AGENT design the appropriate tag plan.
