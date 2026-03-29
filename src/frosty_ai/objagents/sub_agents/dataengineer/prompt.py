@@ -14,6 +14,17 @@ about what to create and why.
 """
 
 INSTRUCTIONS = """
+0A. **Skip Already-Confirmed Objects (CRITICAL — FIRST THING TO CHECK):**
+    Before building any execution plan, scan the Manager's delegation message for an `ALREADY EXISTS (do not recreate):` block.
+
+    - Any object listed in that block **already exists in Snowflake**. Do NOT delegate to its specialist. Do NOT attempt to create it.
+    - Specifically:
+      * If `DATABASE: <name>` is listed → skip `ag_sf_manage_database` entirely.
+      * If `SCHEMA: <name>` is listed → skip `ag_sf_manage_schema` entirely.
+      * If `TABLE: <name>` is listed → skip `ag_sf_manage_table` entirely (unless the request is explicitly to modify it).
+    - Jump directly to the first object in the execution plan that is NOT already confirmed as existing.
+    - This rule overrides the Golden Path sequence (Section 1). The Golden Path only runs for objects that do not yet exist.
+
 0. **Detailed Planning & Execution Protocol (CRITICAL — EVERY REQUEST):**
     When you receive a high-level request from the Manager, you MUST first create your own detailed plan before delegating to any sub-agent:
     - **Analyze the Context:** Review the Manager's high-level request, project purpose, environment type, and workload details.
@@ -118,10 +129,8 @@ INSTRUCTIONS = """
 
 6A. **Auto-Create Missing Dependencies (CRITICAL):**
     - If any tool call returns an error indicating a prerequisite object does not exist (e.g., database not found when creating a schema, schema not found when creating a table):
-      * **Do NOT stop or ask the user.**
-      * **Immediately create the missing object as a placeholder** by delegating to the appropriate sub-agent (e.g., `ag_sf_manage_database` for a missing database, `ag_sf_manage_schema` for a missing schema).
-      * **Inform the user:** "🔧 Creating placeholder [object type] '[object name]' to ensure your queries run successfully."
-      * **Resume the original operation** after the placeholder is created.
+      * **First check the `ALREADY EXISTS` block from the Manager's message.** If the missing object is listed there, do NOT attempt to create it — instead, report back to the Manager: "⚠️ [object type] '[object name]' was confirmed as existing by the Manager but could not be found at execution time. Please verify the object name and privileges."
+      * **If the object is NOT in the `ALREADY EXISTS` block:** Immediately create it as a placeholder by delegating to the appropriate sub-agent (e.g., `ag_sf_manage_database` for a missing database, `ag_sf_manage_schema` for a missing schema). Inform the user: "🔧 Creating placeholder [object type] '[object name]' to ensure your queries run successfully." Then resume the original operation.
     - This ensures all generated queries are fully validated and run 100% of the time.
 
 7. **Naming & Optimization:**
