@@ -29,6 +29,7 @@ If you find Frosty useful, please consider giving it a ⭐ — it helps others d
 ## What is Frosty?
 
 Frosty is a **153-agent system** built by [Gyrus Inc](https://www.thegyrus.com) that lets you manage your entire Snowflake environment in plain English — from querying data to administering security policies.
+Learn more at https://www.thegyrus.com
 
 ```
 "who are my top 10 customers by revenue last quarter?"
