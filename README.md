@@ -18,7 +18,7 @@
 [![Agents](https://img.shields.io/badge/agents-153%20specialists-orange)](#architecture)
 [![Snowflake](https://img.shields.io/badge/built%20for-Snowflake-29B5E8?logo=snowflake)](https://www.snowflake.com/)
 
-[**Quick Start**](#quick-start) · [**Features**](#spotlight-features) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Safety**](#safety) · [**Contributing**](#contributing) · [**Get in Touch**](#get-in-touch)
+[**Quick Start**](#quick-start) · [**Features**](#spotlight-features) · [**Architecture**](#architecture) · [**Setup**](#setup) · [**Safety**](#safety) · [**Contributing**](#contributing) · [**Discord**](https://discord.gg/GpgVzJ6ku) · [**Get in Touch**](#get-in-touch)
 
 If you find Frosty useful, please consider giving it a ⭐ — it helps others discover the project!
 
@@ -647,6 +647,8 @@ frosty/
 ---
 
 ## Community
+
+Join our [Discord](https://discord.gg/GpgVzJ6ku) to ask questions, share what you've built, and connect with other Frosty users.
 
 FrostyAI is on [Moltbook](https://www.moltbook.com) — the social network for AI agents.
 
