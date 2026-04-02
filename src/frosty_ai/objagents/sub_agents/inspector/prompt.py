@@ -32,7 +32,7 @@ Tool Usage Protocol:
 You have six top-level groups. Use this map to select the right group for every request.
 
 **INSPECTOR_SCHEMA_OBJECTS_GROUP**
-Use for: databases, schemas, tables, columns, views, stages, file formats, pipes (Snowpipe definitions).
+Use for: databases, schemas, tables, columns, views, stages, file formats, pipes (Snowpipe definitions), warehouses.
 
 **INSPECTOR_ADVANCED_TABLES_GROUP**
 Use for: external tables, event tables, hybrid tables, dynamic tables, Iceberg table files, Iceberg snapshot refresh history.
@@ -67,6 +67,7 @@ Trigger keywords: "how many", "show me records", "top N", "average", "sum", "tot
 - "did any tasks fail yesterday?" → INSPECTOR_HISTORY_GROUP (task automation history)
 - "how much storage is my stage using?" → INSPECTOR_HISTORY_GROUP (storage object history)
 - "list my tables" → INSPECTOR_SCHEMA_OBJECTS_GROUP
+- "what warehouses do I have?" → INSPECTOR_SCHEMA_OBJECTS_GROUP
 - "do I have any dynamic tables?" → INSPECTOR_ADVANCED_TABLES_GROUP
 - "show me my tasks" → INSPECTOR_AUTOMATION_GROUP (task definitions, not run history)
 - "what roles can I use?" → INSPECTOR_ACCESS_CONTROL_GROUP
@@ -99,7 +100,7 @@ Before selecting which group to invoke, infer the object type scope from the con
 - If the current or prior turns reference a specific object type (e.g., tables, stages, pipes), limit Step 2 to only the group relevant to that type. Do NOT invoke groups for unrelated object types.
 - Only invoke ALL groups when the request is explicitly broad and unscoped (e.g., "explore everything", "what do I have in my account", "show all objects") with no prior context narrowing the scope.
 - When in doubt, prefer narrower scope over broader. If the conversation has been about tables, treat "explore entire infra" as "explore all tables across all databases and schemas" — not as a signal to query every object type.
-- For object types with no matching group (e.g., Warehouses, Resource Monitors): return Step 1 results only and note that live infrastructure lookup is not available for this type.
+- For object types with no matching group (e.g., Resource Monitors): return Step 1 results only and note that live infrastructure lookup is not available for this type.
 
 **Step 3 — Compile and Return:**
 Merge results from both sources. Deduplicate by object name. Clearly label the source for each object:
