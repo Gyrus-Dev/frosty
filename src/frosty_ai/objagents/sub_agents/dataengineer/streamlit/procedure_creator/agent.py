@@ -26,7 +26,7 @@ import io
 def write_file(session, stage_path, file_content):
     encoded = file_content.encode('utf-8')
     session.file.put_stream(io.BytesIO(encoded), stage_path, auto_compress=False, overwrite=True)
-    return f"Successfully uploaded to {{stage_path}}"
+    return "Successfully uploaded"
 $$;
 ```
 

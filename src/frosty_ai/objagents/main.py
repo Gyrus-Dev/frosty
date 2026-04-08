@@ -108,6 +108,29 @@ def _format_inline(text: str) -> str:
     return text
 
 
+def _summarize_debug_part(part) -> str:
+    """Return a concise debug summary for non-text ADK event parts."""
+    fields = []
+    for attr in ("text", "thought", "code_execution_result", "executable_code", "inline_data", "file_data"):
+        value = getattr(part, attr, None)
+        if value:
+            fields.append(f"{attr}={value!r}")
+    if not fields:
+        try:
+            return repr(part)
+        except Exception:
+            return f"<{type(part).__name__}>"
+    return ", ".join(fields)
+
+
+def _extract_fenced_code_block(text: str, language: str = "python") -> str | None:
+    """Extract the first fenced code block for the requested language."""
+    match = re.search(rf"```{language}\n(.*?)```", text, re.DOTALL | re.IGNORECASE)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
 def _update_query_display(total_count: int) -> None:
     """Update the terminal title bar and inline display with the current object count."""
     sys.stdout.write(f"\033]0;Frosty AI  |  Objects created: {total_count}\007")
@@ -233,6 +256,10 @@ async def call_agent_and_print(
     final_response_content = "No final response received."
     queries_executed = []
     _update_queries_from_state(initial_state, queries_executed)
+    debug_enabled = os.environ.get("FROSTY_DEBUG", "").lower() == "true"
+    last_author = None
+    last_transfer_target = None
+    last_generated_code = None
 
     _spinner.start(f"[{agent_instance.name}]")
     try:
@@ -242,11 +269,15 @@ async def call_agent_and_print(
                 author = agent_instance.name
 
             if event.actions.transfer_to_agent:
-                _spinner.set_label(f"[{event.actions.transfer_to_agent}]")
+                transfer_target = event.actions.transfer_to_agent
+                _spinner.set_label(f"[{transfer_target}]")
+                if transfer_target != last_transfer_target:
+                    _spinner.println(f"-> Running {transfer_target}")
+                    last_transfer_target = transfer_target
 
             state = _get_event_state(event)
             if state:
-                if os.environ.get("FROSTY_DEBUG", "").lower() == "true":
+                if debug_enabled:
                     _spinner.println(f"### [{author}] State\n{state}")
                 prev_count = len(queries_executed)
                 _update_queries_from_state(state, queries_executed)
@@ -254,14 +285,25 @@ async def call_agent_and_print(
                     total = query_offset + len(queries_executed)
                     _update_query_display(total)
 
-            if os.environ.get("FROSTY_DEBUG", "").lower() == "true":
+            if debug_enabled:
+                if author != last_author:
+                    _spinner.println(f"### [Agent] {author}")
+                    last_author = author
                 calls = event.get_function_calls()
                 responses = event.get_function_responses()
                 if event.content and event.content.parts:
-                    if event.content.parts[0].text:
-                        _spinner.println(f"### [{author}] Payload\n{event.content.parts[0].text}")
-                    if event.content.parts[0].thought:
-                        _spinner.println(f"### [{author}] Thinking\n{event.content.parts[0].text}")
+                    for part in event.content.parts:
+                        if getattr(part, "text", None):
+                            _spinner.println(f"### [{author}] Payload\n{part.text}")
+                            if author == "STREAMLIT_CODE_GENERATOR":
+                                generated_code = _extract_fenced_code_block(part.text)
+                                if generated_code and generated_code != last_generated_code:
+                                    _spinner.println(f"### [{author}] Generated Code\n```python\n{generated_code}\n```")
+                                    last_generated_code = generated_code
+                        elif getattr(part, "thought", False):
+                            _spinner.println(f"### [{author}] Thought\n{getattr(part, 'text', '')}")
+                        else:
+                            _spinner.println(f"### [{author}] Part\n{_summarize_debug_part(part)}")
                 if calls:
                     _spinner.println(f"### [{author}] Tool Calls")
                     for call in calls:
