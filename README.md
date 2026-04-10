@@ -474,14 +474,15 @@ Frosty maintains a process-level session cache. Before every tool call the cache
 
 | Variable | Required | Description |
 |---|---|---|
-| `MODEL_PROVIDER` | No | `google` (default) · `openai` · `anthropic` |
+| `MODEL_PROVIDER` | No | `google` (default) · `openai` · `anthropic` · `ollama` |
 | `GOOGLE_API_KEY` | If `google` | API key for Gemini models |
 | `OPENAI_API_KEY` | If `openai` | API key for OpenAI models |
 | `ANTHROPIC_API_KEY` | If `anthropic` | API key for Claude models |
 | `MODEL_PRIMARY` | No | Override the fast model. Defaults: `gemini-2.5-flash` · `gpt-4o-mini` · `claude-3-5-haiku-20241022` |
 | `MODEL_THINKING` | No | Override the reasoning model. Defaults: `gemini-2.5-pro-preview-03-25` · `gpt-4o` · `claude-3-5-sonnet-20241022` |
+| `OLLAMA_API_BASE` | If `ollama` | Ollama host URL (default: `http://localhost:11434`) |
 
-Frosty supports **OpenAI**, **Claude**, and **Gemini** out of the box. Any model supported by Google ADK can also be used — see the [ADK Models documentation](https://google.github.io/adk-docs/agents/models/).
+Frosty supports **OpenAI**, **Claude**, **Gemini**, and **Ollama** out of the box. Any model supported by Google ADK can also be used — see the [ADK Models documentation](https://google.github.io/adk-docs/agents/models/).
 
 #### Moltbook
 
@@ -554,6 +555,9 @@ GOOGLE_API_KEY=your_google_api_key
 # OPENAI_API_KEY=your_openai_api_key
 # MODEL_PROVIDER=anthropic
 # ANTHROPIC_API_KEY=your_anthropic_api_key
+# MODEL_PROVIDER=ollama
+# OLLAMA_API_BASE=http://localhost:11434
+# MODEL_PRIMARY=ollama/gemma4:e2b
 
 # --- Observability / Grafana Cloud (optional) ---
 # OTEL_ENABLED=true

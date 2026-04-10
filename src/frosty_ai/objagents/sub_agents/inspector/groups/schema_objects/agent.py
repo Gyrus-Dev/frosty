@@ -12,6 +12,7 @@ from src.frosty_ai.objagents.sub_agents.inspector.views.prompt import AGENT_NAME
 from src.frosty_ai.objagents.sub_agents.inspector.stages.prompt import AGENT_NAME as _STG_NAME, DESCRIPTION as _STG_DESC
 from src.frosty_ai.objagents.sub_agents.inspector.fileformats.prompt import AGENT_NAME as _FF_NAME, DESCRIPTION as _FF_DESC
 from src.frosty_ai.objagents.sub_agents.inspector.pipes.prompt import AGENT_NAME as _PIPE_NAME, DESCRIPTION as _PIPE_DESC
+from src.frosty_ai.objagents.sub_agents.inspector.warehouses.prompt import AGENT_NAME as _WH_NAME, DESCRIPTION as _WH_DESC
 
 _BASE = "src.frosty_ai.objagents.sub_agents.inspector"
 
@@ -29,6 +30,7 @@ ag_sf_schema_objects_group = LlmAgent(
         LazyAgentTool(module_path=f"{_BASE}.stages.agent", agent_attr="ag_sf_inspect_stage", name=_STG_NAME, description=_STG_DESC),
         LazyAgentTool(module_path=f"{_BASE}.fileformats.agent", agent_attr="ag_sf_inspect_file_format", name=_FF_NAME, description=_FF_DESC),
         LazyAgentTool(module_path=f"{_BASE}.pipes.agent", agent_attr="ag_sf_inspect_pipe", name=_PIPE_NAME, description=_PIPE_DESC),
+        LazyAgentTool(module_path=f"{_BASE}.warehouses.agent", agent_attr="ag_sf_inspect_warehouse", name=_WH_NAME, description=_WH_DESC),
     ],
     before_model_callback=before_model_callback,
     after_model_callback=after_model_callback,

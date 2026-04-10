@@ -5,10 +5,11 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # ── Provider selection ────────────────────────────────────────────────────────
-# Set MODEL_PROVIDER to "google" (default), "anthropic", or "openai"
+# Set MODEL_PROVIDER to "google" (default), "anthropic", "openai", or "ollama"
 MODEL_PROVIDER = os.environ.get("MODEL_PROVIDER", "google").lower()
-IS_GOOGLE_MODEL = MODEL_PROVIDER == "google"
 USE_SKILLS = os.environ.get("USE_SKILLS", "true").lower() != "false"
+IS_GOOGLE_MODEL = False
+IS_NATIVE_GOOGLE_MODEL = False
 
 # ── Model resolution ──────────────────────────────────────────────────────────
 if MODEL_PROVIDER == "anthropic":
@@ -29,9 +30,38 @@ elif MODEL_PROVIDER == "openai":
     PRIMARY_MODEL = LiteLlm(model=_primary)
     THINKING_MODEL = LiteLlm(model=_thinking)
 
+elif MODEL_PROVIDER == "ollama":
+    from google.adk.models.lite_llm import LiteLlm
+
+    _primary = os.environ.get("MODEL_PRIMARY", "ollama/gemma4:e2b")
+
+    PRIMARY_MODEL = LiteLlm(model=_primary)
+    THINKING_MODEL = None
+
 else:  # google (default)
-    PRIMARY_MODEL = os.environ.get("PRIMARY_MODEL", "gemini-2.5-flash")
-    THINKING_MODEL = os.environ.get("THINKING_MODEL", "gemini-2.5-pro-preview-03-25")
+    _primary = os.environ.get("PRIMARY_MODEL", "gemini-2.5-flash")
+    _thinking = os.environ.get("THINKING_MODEL", "gemini-2.5-pro-preview-03-25")
+
+    # Allow LiteLLM-backed Gemini models (e.g., Gemma 4 via Gemini API).
+    # If the model uses provider-style naming or starts with "gemma-",
+    # route through LiteLLM instead of the native Gemini registry.
+    if "/" in _primary or _primary.startswith("gemma-"):
+        from google.adk.models.lite_llm import LiteLlm
+
+        if "/" not in _primary:
+            _primary = f"gemini/{_primary}"
+        if _thinking and "/" not in _thinking:
+            _thinking = f"gemini/{_thinking}"
+
+        PRIMARY_MODEL = LiteLlm(model=_primary)
+        THINKING_MODEL = LiteLlm(model=_thinking) if _thinking else None
+        IS_NATIVE_GOOGLE_MODEL = False
+    else:
+        PRIMARY_MODEL = _primary
+        THINKING_MODEL = _thinking
+        IS_NATIVE_GOOGLE_MODEL = True
+
+    IS_GOOGLE_MODEL = True
 
 _primary_label = getattr(PRIMARY_MODEL, "model", PRIMARY_MODEL)
 _thinking_label = getattr(THINKING_MODEL, "model", THINKING_MODEL)
@@ -46,7 +76,7 @@ def get_planner(thinking_budget: int = 512) -> Optional[object]:
     BuiltInPlanner / ThinkingConfig are Gemini-specific features and are not
     supported by Anthropic or OpenAI models via LiteLLM.
     """
-    if not IS_GOOGLE_MODEL:
+    if not IS_NATIVE_GOOGLE_MODEL:
         return None
     from google.adk.planners import BuiltInPlanner
     from google.genai import types
