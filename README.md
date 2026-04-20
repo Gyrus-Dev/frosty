@@ -12,6 +12,10 @@
 
 **An open-source, self-hosted agentic framework that turns plain English into Snowflake operations.**
 
+  ### 🚀 Get Started Faster                                                                                                                                                                                          
+  **Need help deploying Frosty or want to see the latest agent recipes?**                                                                                                                                            
+  [**Join the Frosty Discord Community**](https://discord.gg/GpgVzJ6ku) to connect with other data architects and the Gyrus team. 
+
 [![License](https://img.shields.io/badge/license-©%202025%20Gyrus%20Inc-blue)](#license)
 [![Python](https://img.shields.io/badge/python-3.11.10-blue?logo=python)](https://www.python.org/)
 [![Models](https://img.shields.io/badge/models-Claude%20%7C%20Gemini%20%7C%20OpenAI-green)](#model-provider)
@@ -211,6 +215,9 @@ The `DATA_ANALYST` specialist discovers your schema, generates accurate Snowflak
 
 Trigger phrases: *"how many"*, *"show me"*, *"top N"*, *"compare"*, *"query my data"*, *"what's the revenue"*
 
+ > **Pro Tip:** Struggling to refine your business rules? Share your `business-rules.md` draft in the `#help-and-support` channel on our **[Discord](https://discord.gg/GpgVzJ6ku)**, and we'll help you optimize   
+your metric definitions for maximum accuracy.  
+
 #### Business Rules — Make Queries Smarter
 
 By default the analyst infers SQL purely from schema metadata. Add **business rules** to make it significantly more accurate — metric definitions, canonical date columns, standard filters, and join keys specific to your data model.
@@ -403,6 +410,17 @@ Tags · Contacts · Masking Policies · Privacy Policies · Projection Policies 
 </details>
 
 ---
+
+  ## 🤝 Join the Ecosystem                                                                                                                                                                                           
+                                                                                                                                                                                                                     
+  Frosty is open-source and community-driven. We don't just provide the code; we're building a hub for Agentic Data Ops. Join our Discord to:                                                                        
+                                                                                                                                                                                                                     
+  * **🛠️ Get Agent Recipes:** Discover the most effective prompt sequences for automating complex Snowflake migrations and security hardening.                                                                       
+  * **🗺️ Influence the Roadmap:** Vote on new features and tell us which data platforms we should build agents for next.                                                                                             
+  * **⚡ Direct Access:** Get real-time architectural guidance and support from the creators at Gyrus Inc.                                                                                                           
+  * **🧪 Beta Access:** Get early access to new specialist agents and experimental pillars before they hit the main branch.                                                                                          
+                                                                                                                                                                                                                     
+  [**👉 Enter the Frosty Discord**](https://discord.gg/GpgVzJ6ku)  
 
 ## Setup
 
