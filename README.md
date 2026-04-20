@@ -14,7 +14,7 @@
 
   ### 🚀 Get Started Faster                                                                                                                                                                                          
   **Need help deploying Frosty or want to see the latest agent recipes?**                                                                                                                                            
-  [**Join the Frosty Discord Community**](https://discord.gg/GpgVzJ6ku) to connect with other data architects and the Gyrus team. 
+  [**Join the Gyrus Discord Community**](https://discord.gg/GpgVzJ6ku) to connect with other data architects and the Gyrus team. 
 
 [![License](https://img.shields.io/badge/license-©%202025%20Gyrus%20Inc-blue)](#license)
 [![Python](https://img.shields.io/badge/python-3.11.10-blue?logo=python)](https://www.python.org/)
