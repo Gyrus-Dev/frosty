@@ -459,6 +459,8 @@ cp .env.example .env
 
 Then fill in your values — refer to `.env.example` for all available variables and their descriptions.
 
+When you launch Frosty, the CLI also offers an interactive launch configuration flow. Press Enter to keep existing `.env` values, or enter new Snowflake, app identity, and model provider values for the current process. Set `FROSTY_CONFIG_ON_LAUNCH=false` to skip this prompt.
+
 #### Snowflake Connection
 
 | Variable | Required | Description |

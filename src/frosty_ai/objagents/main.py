@@ -2,17 +2,20 @@ import sys
 import os
 import re
 import asyncio
+import getpass
 import logging
 import threading
+import time
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="google.adk")
 from dotenv import load_dotenv
 load_dotenv()
 from datetime import datetime
-from ._spinner import spinner as _spinner
+from pathlib import Path
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.prompt import Confirm, Prompt
 from rich.rule import Rule
 from rich.syntax import Syntax
 from rich.text import Text
@@ -21,8 +24,316 @@ from prompt_toolkit.widgets import TextArea, Frame as PTFrame
 from prompt_toolkit.layout import Layout
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.styles import Style as PTStyle
+from openai import OpenAI
+import anthropic
+import google.generativeai as genai
+import requests
 
 _console = Console()
+
+_LAUNCH_ENV_KEYS = [
+    "APP_USER_NAME",
+    "APP_USER_ID",
+    "APP_NAME",
+    "SNOWFLAKE_USER_NAME",
+    "SNOWFLAKE_USER_PASSWORD",
+    "SNOWFLAKE_ACCOUNT_IDENTIFIER",
+    "SNOWFLAKE_AUTHENTICATOR",
+    "SNOWFLAKE_ROLE",
+    "SNOWFLAKE_WAREHOUSE",
+    "SNOWFLAKE_DATABASE",
+    "MODEL_PROVIDER",
+    "GOOGLE_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "OPENAI_API_BASE",
+    "OLLAMA_API_BASE",
+    "MODEL_PRIMARY",
+    "MODEL_THINKING",
+]
+
+
+def _is_placeholder(value: str | None) -> bool:
+    if not value:
+        return True
+    stripped = value.strip()
+    return stripped.startswith("<YOUR_") or stripped in {
+        "YOUR_PRIMARY_MODEL",
+        "your_password",
+        "your_openai_api_key",
+    }
+
+
+def _set_env_value(name: str, value: str | None) -> None:
+    if value is None:
+        return
+    value = value.strip()
+    if value:
+        os.environ[name] = value
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
+
+def _quote_env_value(value: str) -> str:
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def _env_line(name: str, value: str) -> str:
+    return f"{name}={_quote_env_value(value)}"
+
+
+def _persist_launch_env() -> None:
+    env_path = _project_root() / ".env"
+    existing_lines = env_path.read_text().splitlines() if env_path.exists() else []
+    values = {name: os.environ.get(name, "") for name in _LAUNCH_ENV_KEYS}
+    remaining = set(values)
+    updated_lines: list[str] = []
+
+    for line in existing_lines:
+        stripped = line.lstrip()
+        uncommented = stripped[1:].lstrip() if stripped.startswith("#") else stripped
+        match = re.match(r"(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=", uncommented)
+        if match and match.group(1) in remaining:
+            name = match.group(1)
+            updated_lines.append(_env_line(name, values[name]))
+            remaining.remove(name)
+        else:
+            updated_lines.append(line)
+
+    if remaining:
+        if updated_lines and updated_lines[-1].strip():
+            updated_lines.append("")
+        updated_lines.append("# Launch configuration")
+        for name in _LAUNCH_ENV_KEYS:
+            if name in remaining:
+                updated_lines.append(_env_line(name, values[name]))
+
+    env_path.write_text("\n".join(updated_lines).rstrip() + "\n")
+    _console.print(f"[dim]Saved launch configuration to {env_path}[/dim]")
+
+
+def _prompt_env_value(name: str, label: str, *, default: str | None = None, secret: bool = False) -> None:
+    current = os.environ.get(name)
+    fallback = default if _is_placeholder(current) else current
+
+    if secret:
+        suffix = " (press Enter to keep current)" if fallback else ""
+        value = getpass.getpass(f"{label}{suffix}: ")
+        if value:
+            _set_env_value(name, value)
+        elif fallback:
+            os.environ[name] = fallback
+        return
+
+    value = Prompt.ask(label, default=fallback or "")
+    _set_env_value(name, value)
+
+
+def _prompt_env_choice(name: str, label: str, choices: list[tuple[str, str]], *, default: str) -> str:
+    current = os.environ.get(name)
+    selected_value = default if _is_placeholder(current) else current
+    valid_values = {value for value, _ in choices}
+    if selected_value not in valid_values:
+        selected_value = default
+
+    default_index = next(
+        index for index, (value, _description) in enumerate(choices, 1)
+        if value == selected_value
+    )
+
+    _console.print(f"\n[bold]{label}[/bold]")
+    for index, (value, description) in enumerate(choices, 1):
+        marker = " [dim](current)[/dim]" if value == selected_value else ""
+        value_label = value or "none"
+        _console.print(f"  {index}. {value_label} [dim]- {description}[/dim]{marker}")
+
+    answer = Prompt.ask(
+        f"Choose {label.lower()}",
+        choices=[str(index) for index in range(1, len(choices) + 1)],
+        default=str(default_index),
+    )
+    value = choices[int(answer) - 1][0]
+    if value:
+        os.environ[name] = value
+    else:
+        os.environ.pop(name, None)
+    return value
+
+
+def _prompt_model_choice(name: str, label: str, models: list[str], *, default: str) -> None:
+    unique_models = list(dict.fromkeys(model for model in models if model))
+    if not unique_models:
+        _prompt_env_value(name, label, default=default)
+        return
+
+    current = os.environ.get(name)
+    selected_value = default if _is_placeholder(current) else current
+    if selected_value not in unique_models:
+        unique_models.insert(0, selected_value)
+
+    _prompt_env_choice(
+        name,
+        label,
+        [(model, "available model") for model in unique_models],
+        default=selected_value,
+    )
+
+
+def _get_model_list(model_provider, api_key):
+    available_models = []
+    if model_provider == "openai":
+
+        openai_base = os.environ.get("OPENAI_API_BASE")
+        client = OpenAI(api_key=api_key, base_url=openai_base) if openai_base else OpenAI(api_key=api_key)
+        # Fetch models
+        models = client.models.list()
+        # Print model IDs
+        for model in models.data:
+            model_id = model.id
+            available_models.append(model_id if "/" in model_id else f"openai/{model_id}")
+
+    if model_provider == "anthropic":
+        client = anthropic.Anthropic(api_key=api_key)
+        models = client.models.list()
+        for m in models.data:
+            model_id = m.id
+            available_models.append(model_id if "/" in model_id else f"anthropic/{model_id}")
+    
+    if model_provider == "google":
+        genai.configure(api_key=api_key)
+        models = genai.list_models()
+        for m in models:
+            available_models.append(m.name.removeprefix("models/"))
+    
+    if model_provider == "ollama":
+        ollama_base = os.environ.get("OLLAMA_API_BASE", "http://localhost:11434").rstrip("/")
+        response = requests.get(f"{ollama_base}/api/tags", timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        for model in data.get("models", []):
+            available_models.append(f"ollama_chat/{model['name']}")
+
+    return available_models
+
+
+def _prompt_provider_models(provider: str, api_key: str | None, primary_default: str, thinking_default: str) -> None:
+    try:
+        models = _get_model_list(provider, api_key)
+    except Exception as exc:
+        _console.print(f"[yellow]Could not fetch {provider} models: {exc}[/yellow]")
+        models = []
+
+    _prompt_model_choice("MODEL_PRIMARY", "Primary model", models, default=primary_default)
+    _prompt_model_choice(
+        "MODEL_THINKING",
+        "Thinking model",
+        models,
+        default=os.environ.get("MODEL_PRIMARY", thinking_default),
+    )
+            
+
+
+def _configure_launch_env() -> None:
+    """Collect launch-time environment values before agents import config.py."""
+    if os.environ.get("FROSTY_CONFIG_ON_LAUNCH", "true").lower() in {"0", "false", "no"}:
+        return
+    if not sys.stdin.isatty():
+        return
+
+    required_names = [
+        "SNOWFLAKE_USER_NAME",
+        "SNOWFLAKE_ACCOUNT_IDENTIFIER",
+        "APP_USER_NAME",
+        "APP_USER_ID",
+        "APP_NAME",
+    ]
+    has_missing_required = any(_is_placeholder(os.environ.get(name)) for name in required_names)
+    configure = has_missing_required or Confirm.ask(
+        "Configure Frosty environment for this launch?",
+        default=False,
+    )
+    if not configure:
+        return
+
+    _console.print(Rule("[dim]Launch Configuration[/dim]", style="dim"))
+    _console.print("[dim]Press Enter to keep an existing value. Values are saved to .env for future sessions.[/dim]")
+
+    _prompt_env_value("APP_USER_NAME", "App display user name", default="Frosty User")
+    _prompt_env_value("APP_USER_ID", "App user id", default=os.environ.get("APP_USER_NAME", "frosty-user"))
+    _prompt_env_value("APP_NAME", "App name", default="frosty")
+
+    _prompt_env_value("SNOWFLAKE_USER_NAME", "Snowflake user name")
+    _prompt_env_value("SNOWFLAKE_USER_PASSWORD", "Snowflake password", secret=True)
+    _prompt_env_value("SNOWFLAKE_ACCOUNT_IDENTIFIER", "Snowflake account identifier")
+    _prompt_env_choice(
+        "SNOWFLAKE_AUTHENTICATOR",
+        "Snowflake authenticator",
+        [
+            ("", "standard username and password"),
+            ("username_password_mfa", "Snowflake MFA with password"),
+            ("externalbrowser", "browser-based SSO"),
+        ],
+        default="",
+    )
+    _prompt_env_value("SNOWFLAKE_ROLE", "Snowflake role (optional)", default="")
+    _prompt_env_value("SNOWFLAKE_WAREHOUSE", "Snowflake warehouse (optional)", default="")
+    _prompt_env_value("SNOWFLAKE_DATABASE", "Snowflake database (optional)", default="")
+
+    current_provider = os.environ.get("MODEL_PROVIDER", "google").lower()
+    if current_provider not in {"google", "openai", "anthropic", "ollama"}:
+        current_provider = "google"
+    provider = _prompt_env_choice(
+        "MODEL_PROVIDER",
+        "Model provider",
+        [
+            ("google", "Gemini models"),
+            ("openai", "OpenAI or OpenAI-compatible endpoint"),
+            ("anthropic", "Claude models"),
+            ("ollama", "local Ollama through LiteLLM"),
+        ],
+        default=current_provider,
+    )
+    os.environ["MODEL_PROVIDER"] = provider
+
+    if provider == "google":
+        _prompt_env_value("GOOGLE_API_KEY", "Google API key", secret=True)
+        _prompt_provider_models(
+            provider,
+            os.environ.get("GOOGLE_API_KEY"),
+            "gemini-2.5-flash",
+            "gemini-2.5-pro-preview-03-25",
+        )
+    elif provider == "anthropic":
+        _prompt_env_value("ANTHROPIC_API_KEY", "Anthropic API key", secret=True)
+        _prompt_provider_models(
+            provider,
+            os.environ.get("ANTHROPIC_API_KEY"),
+            "anthropic/claude-3-5-haiku-20241022",
+            "anthropic/claude-3-5-sonnet-20241022",
+        )
+    elif provider == "ollama":
+        _prompt_env_value("OLLAMA_API_BASE", "Ollama API base", default="http://localhost:11434")
+        _prompt_provider_models(
+            provider,
+            None,
+            "ollama_chat/llama3.1",
+            os.environ.get("MODEL_PRIMARY", "ollama_chat/llama3.1"),
+        )
+    else:
+        _prompt_env_value("OPENAI_API_KEY", "OpenAI API key", secret=True)
+        _prompt_env_value("OPENAI_API_BASE", "OpenAI API base (optional)", default="")
+        _prompt_provider_models(
+            provider,
+            os.environ.get("OPENAI_API_KEY"),
+            "openai/gpt-4o-mini",
+            "openai/gpt-4o",
+        )
+
+    _persist_launch_env()
 
 
 async def _get_boxed_input() -> str:
@@ -68,6 +379,9 @@ async def _get_boxed_input() -> str:
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../'))
 
+_configure_launch_env()
+
+from ._spinner import spinner as _spinner
 _spinner.start("Starting Frosty AI...")
 from .agent import ag_sf_manager
 from google.adk.runners import Runner
@@ -177,7 +491,7 @@ def _print_queries_panel(queries_executed: list[str]) -> None:
     _console.print(
         Panel(
             Syntax(combined, "sql", theme="monokai", word_wrap=True),
-            title="[bold green]Objects Created[/bold green]",
+            title="[bold green]Queries Executed[/bold green]",
             border_style="green",
             padding=(1, 2),
         )
@@ -216,25 +530,53 @@ def _extract_options(main_text: str) -> tuple[str, str]:
     return main_text[:earliest].rstrip(), main_text[earliest:].lstrip()
 
 
-def _build_context_message(message: str, chat_history: list | None = None) -> str:
+def _format_elapsed_time(seconds: float) -> str:
+    """Render a compact human-readable duration for one user interaction."""
+    if seconds < 1:
+        return f"{seconds * 1000:.0f} ms"
+    if seconds < 60:
+        return f"{seconds:.2f} s"
+    minutes, remainder = divmod(seconds, 60)
+    return f"{int(minutes)}m {remainder:.2f}s"
+
+
+def _build_context_message(message: str, chat_history: list | None = None, max_chars: int = 800_000) -> str:
     """Prepend recent conversation history to the current user message.
 
     *chat_history* is a list of dicts, each with ``role`` and ``content`` keys.
+    *max_chars* caps the total enriched message size (~4 chars per token, so
+    800 000 chars ≈ 200 000 tokens, leaving headroom in a 262 144-token model).
+    Oldest turns are dropped first when the budget is exceeded.
     """
     logger.debug("_build_context_message: building context with %d history entries", len(chat_history) if chat_history else 0)
     if not chat_history:
         logger.debug("_build_context_message: no chat history, returning message as-is")
         return message
-    lines = ["Here is the recent conversation history for context:"]
-    for msg in chat_history:
+
+    header = "Here is the recent conversation history for context:\n"
+    footer = "\nNow, respond to the following new message:\n" + message
+    # Budget available for history lines
+    budget = max_chars - len(header) - len(footer)
+
+    history_lines: list[str] = []
+    # Walk history newest-first so we keep the most recent context
+    for msg in reversed(chat_history):
         role = msg.get("role", "unknown")
         content = msg.get("content", "")
-        lines.append(f"{role}: {content}")
-    lines.append("")
-    lines.append("Now, respond to the following new message:")
-    lines.append(message)
-    enriched = "\n".join(lines)
-    logger.debug("_build_context_message: enriched message length=%d chars", len(enriched))
+        line = f"{role}: {content}"
+        budget -= len(line) + 1  # +1 for newline
+        if budget < 0:
+            logger.warning(
+                "_build_context_message: chat history truncated; dropped %d oldest entries",
+                len(chat_history) - len(history_lines),
+            )
+            break
+        history_lines.append(line)
+
+    history_lines.reverse()
+    enriched = header + "\n".join(history_lines) + footer
+    logger.debug("_build_context_message: enriched message length=%d chars (history entries used=%d/%d)",
+                 len(enriched), len(history_lines), len(chat_history))
     return enriched
 
 
@@ -502,17 +844,22 @@ async def interactive():
             _console.print("[bold cyan]Goodbye![/bold cyan]")
             break
         logger.debug("interactive: dispatching message to main, history_len=%d", len(chat_history))
+        interaction_started = time.perf_counter()
         with _otel_tracer.start_as_current_span("frosty.user_request") as _span:
             _span.set_attribute("query.length", len(user_input))
             response, queries = await main(user_input, runner, sf_session, memory_bank_service, service, chat_history, query_offset=len(session_queries))
             _span.set_attribute("response.queries_count", len(queries))
+            _span.set_attribute("interaction.duration_ms", round((time.perf_counter() - interaction_started) * 1000, 2))
+        interaction_elapsed = time.perf_counter() - interaction_started
         logger.debug("interactive: got response, new queries=%d total_queries=%d", len(queries), len(session_queries) + len(queries))
         _console.print()
         main_text, question = _extract_question(response)
-        full_response = "\n\n".join(part for part in (main_text, question) if part)
-        _console.print(Panel(Markdown(full_response), title="[bold blue]Frosty AI[/bold blue]", border_style="blue", padding=(1, 2)))
         if queries:
             _print_queries_panel(queries)
+        _console.print(Panel(Markdown(main_text), title="[bold blue]Frosty AI[/bold blue]", border_style="blue", padding=(1, 2)))
+        if question:
+            _console.print(Panel(Markdown(question), title="[bold yellow]❓ Question for you[/bold yellow]", border_style="yellow", padding=(1, 2)))
+        _console.print(f"[dim]Interaction time: {_format_elapsed_time(interaction_elapsed)}[/dim]")
         chat_history.append({"role": "user", "content": user_input})
         chat_history.append({"role": "assistant", "content": response})
         session_queries.extend(queries)
