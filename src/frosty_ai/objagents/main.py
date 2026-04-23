@@ -47,6 +47,7 @@ _LAUNCH_ENV_KEYS = [
     "ANTHROPIC_API_KEY",
     "OPENAI_API_KEY",
     "OPENAI_API_BASE",
+    "OPENROUTER_API_KEY",
     "OLLAMA_API_BASE",
     "MODEL_PRIMARY",
     "MODEL_THINKING",
@@ -115,20 +116,24 @@ def _persist_launch_env() -> None:
     _console.print(f"[dim]Saved launch configuration to {env_path}[/dim]")
 
 
-def _prompt_env_value(name: str, label: str, *, default: str | None = None, secret: bool = False) -> None:
+def _prompt_env_value(name: str, label: str, *, default: str | None = None, secret: bool = False, required: bool = False) -> None:
     current = os.environ.get(name)
     fallback = default if _is_placeholder(current) else current
 
+    # Mark required fields with red indicator
+    required_marker = " [red](REQUIRED)[/red]" if required else ""
+    label_with_marker = f"{label}{required_marker}"
+
     if secret:
         suffix = " (press Enter to keep current)" if fallback else ""
-        value = getpass.getpass(f"{label}{suffix}: ")
+        value = getpass.getpass(f"{label_with_marker}{suffix}: ")
         if value:
             _set_env_value(name, value)
         elif fallback:
             os.environ[name] = fallback
         return
 
-    value = Prompt.ask(label, default=fallback or "")
+    value = Prompt.ask(label_with_marker, default=fallback or "")
     _set_env_value(name, value)
 
 
@@ -194,6 +199,18 @@ def _get_model_list(model_provider, api_key):
         for model in models.data:
             model_id = model.id
             available_models.append(model_id if "/" in model_id else f"openai/{model_id}")
+
+    if model_provider == "openrouter":
+        # OpenRouter uses OpenAI-compatible API
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://openrouter.ai/api/v1"
+        )
+        models = client.models.list()
+        for model in models.data:
+            model_id = model.id
+            # OpenRouter models are already prefixed (e.g., "openai/gpt-4", "anthropic/claude-3.5-sonnet")
+            available_models.append(model_id)
 
     if model_provider == "anthropic":
         client = anthropic.Anthropic(api_key=api_key)
@@ -262,13 +279,13 @@ def _configure_launch_env() -> None:
     _console.print(Rule("[dim]Launch Configuration[/dim]", style="dim"))
     _console.print("[dim]Press Enter to keep an existing value. Values are saved to .env for future sessions.[/dim]")
 
-    _prompt_env_value("APP_USER_NAME", "App display user name", default="Frosty User")
-    _prompt_env_value("APP_USER_ID", "App user id", default=os.environ.get("APP_USER_NAME", "frosty-user"))
-    _prompt_env_value("APP_NAME", "App name", default="frosty")
+    _prompt_env_value("APP_USER_NAME", "App display user name", default="Frosty User", required=True)
+    _prompt_env_value("APP_USER_ID", "App user id", default=os.environ.get("APP_USER_NAME", "frosty-user"), required=True)
+    _prompt_env_value("APP_NAME", "App name", default="frosty", required=True)
 
-    _prompt_env_value("SNOWFLAKE_USER_NAME", "Snowflake user name")
-    _prompt_env_value("SNOWFLAKE_USER_PASSWORD", "Snowflake password", secret=True)
-    _prompt_env_value("SNOWFLAKE_ACCOUNT_IDENTIFIER", "Snowflake account identifier")
+    _prompt_env_value("SNOWFLAKE_USER_NAME", "Snowflake user name", required=True)
+    _prompt_env_value("SNOWFLAKE_USER_PASSWORD", "Snowflake password", secret=True, required=True)
+    _prompt_env_value("SNOWFLAKE_ACCOUNT_IDENTIFIER", "Snowflake account identifier", required=True)
     _prompt_env_choice(
         "SNOWFLAKE_AUTHENTICATOR",
         "Snowflake authenticator",
@@ -284,7 +301,7 @@ def _configure_launch_env() -> None:
     _prompt_env_value("SNOWFLAKE_DATABASE", "Snowflake database (optional)", default="")
 
     current_provider = os.environ.get("MODEL_PROVIDER", "google").lower()
-    if current_provider not in {"google", "openai", "anthropic", "ollama"}:
+    if current_provider not in {"google", "openai", "anthropic", "ollama", "openrouter"}:
         current_provider = "google"
     provider = _prompt_env_choice(
         "MODEL_PROVIDER",
@@ -292,6 +309,7 @@ def _configure_launch_env() -> None:
         [
             ("google", "Gemini models"),
             ("openai", "OpenAI or OpenAI-compatible endpoint"),
+            ("openrouter", "OpenRouter (multi-provider)"),
             ("anthropic", "Claude models"),
             ("ollama", "local Ollama through LiteLLM"),
         ],
@@ -317,11 +335,34 @@ def _configure_launch_env() -> None:
         )
     elif provider == "ollama":
         _prompt_env_value("OLLAMA_API_BASE", "Ollama API base", default="http://localhost:11434")
+        
+        # Ask if user wants to use Gemma models through OpenAI Router
+        use_gemma_openrouter = Confirm.ask(
+            "\n[bold]Use Gemma models through OpenAI-compatible endpoint?[/bold]\n"
+            "[dim]This routes Ollama's Gemma models through an OpenAI-compatible API.[/dim]",
+            default=False,
+        )
+        
+        if use_gemma_openrouter:
+            # Hardcode the OpenAI Router configuration for Gemma
+            os.environ["OPENAI_API_KEY"] = "sk-..."
+            os.environ["OPENAI_API_BASE"] = "http://localhost:11434/v1"
+            os.environ["MODEL_PRIMARY"] = "openai/gemma4:31b-cloud"
+            _console.print("[dim]Configured for Gemma via OpenAI-compatible endpoint.[/dim]")
+        else:
+            _prompt_provider_models(
+                provider,
+                None,
+                "ollama_chat/llama3.1",
+                os.environ.get("MODEL_PRIMARY", "ollama_chat/llama3.1"),
+            )
+    elif provider == "openrouter":
+        _prompt_env_value("OPENROUTER_API_KEY", "OpenRouter API key", secret=True)
         _prompt_provider_models(
             provider,
-            None,
-            "ollama_chat/llama3.1",
-            os.environ.get("MODEL_PRIMARY", "ollama_chat/llama3.1"),
+            os.environ.get("OPENROUTER_API_KEY"),
+            "openrouter/google/gemma-2.5-flash",
+            "openrouter/anthropic/claude-3.5-sonnet",
         )
     else:
         _prompt_env_value("OPENAI_API_KEY", "OpenAI API key", secret=True)
@@ -803,6 +844,16 @@ async def interactive():
     threading.Thread(target=_pre_warm, daemon=True, name="agent-prewarmer").start()
 
     _console.print(Rule(style="dim"))
+    
+    # Star solicitation message - EXTRA PROMINENT WITH BOX
+    _console.print()
+    _console.print("[bold yellow]╔═══════════════════════════════════════════════════════════╗[/bold yellow]")
+    _console.print("[bold yellow]║[/bold yellow]  [bold white]⭐  Support Frosty's Development!  ⭐[/bold white] [bold yellow]║[/bold yellow]")
+    _console.print("[bold yellow]║[/bold yellow]  [dim]Maintaining an open-source project takes hard work.[/dim]  [bold yellow]║[/bold yellow]")
+    _console.print("[bold yellow]║[/bold yellow]  [dim]Your stars keep us motivated and help others find us![/dim]  [bold yellow]║[/bold yellow]")
+    _console.print("[bold yellow]║[/bold yellow]  [bold cyan]👉 https://github.com/Gyrus-Dev/frosty[/bold cyan] [bold yellow]║[/bold yellow]")
+    _console.print("[bold yellow]╚═══════════════════════════════════════════════════════════╝[/bold yellow]")
+    _console.print()
 
     _intro = (
         "👋  **Hi! I'm Frosty** — your Snowflake AI assistant.\n\n"
