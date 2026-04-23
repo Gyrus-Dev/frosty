@@ -16,9 +16,7 @@
   ### 🛡️ Trusted & Validated                                                                                                                                                                                         
   **Accelerated by the Confluent Accelerator Program for AI Startups (Cohort-3).**                                                                                                                                   
   Frosty is built on a "Safety-First" architecture, validated through a rigorous program focused on the future of agentic data infrastructure.                                                                       
-                                                                                                                                                                                                                     
-  🚀 **Get Started Faster:** Need help deploying Frosty or want to see the latest agent recipes?                                                                                                                     
-  [**Join the Gyrus Discord Community**](https://discord.gg/GpgVzJ6ku) to connect with other data architects and the Gyrus team.                                                                                     
+                                     
   ---   
 
   ### 🚀 Get Started Faster                                                                                                                                                                                          
@@ -27,7 +25,7 @@
 
 [![License](https://img.shields.io/badge/license-©%202025%20Gyrus%20Inc-blue)](#license)
 [![Python](https://img.shields.io/badge/python-3.11.10-blue?logo=python)](https://www.python.org/)
-[![Models](https://img.shields.io/badge/models-Claude%20%7C%20Gemini%20%7C%20OpenAI-green)](#model-provider)
+[![Models](https://img.shields.io/badge/models-Claude%20%7C%20Gemini%20%7C%20OpenAI%20%7C%20OpenRouter%20%7C%20Ollama-green)](#model-provider)
 [![Agents](https://img.shields.io/badge/agents-153%20specialists-orange)](#architecture)
 [![Snowflake](https://img.shields.io/badge/built%20for-Snowflake-29B5E8?logo=snowflake)](https://www.snowflake.com/)
 
@@ -76,7 +74,7 @@ All from natural language, in minutes.
 | | |
 |---|---|
 | 🏠 **Self-hosted** | Agents run in your environment. Credentials never leave your machine. Every line of logic is readable and modifiable. |
-| 🔁 **Bring your own model** | Works with OpenAI, Anthropic Claude, and Google Gemini out of the box. Swap in a single `.env` line — no code changes. |
+| 🔁 **Bring your own model** | Works with OpenAI, Anthropic Claude, Google Gemini, **OpenRouter**, and **Ollama** out of the box. Swap in a single `.env` line — no code changes. Use local Ollama models to bring costs down to zero. |
 | 🎯 **Purpose-built for Snowflake** | 153 specialist agents cover the full surface area: data engineering, administration, security, governance, cost monitoring, and read-only inspection. |
 | 🛡️ **Safe by design** | `DROP` is unconditionally blocked in code. `CREATE OR REPLACE` requires explicit terminal approval. No parallel execution — one object at a time, in dependency order. |
 | 🔍 **Context-aware** | The INSPECTOR_PILLAR (56 read-only agents) maps your live environment before any plan is executed — no assumptions, no hallucinated object names. |
@@ -458,6 +456,8 @@ cp .env.example .env
 ```
 
 Then fill in your values — refer to `.env.example` for all available variables and their descriptions.
+
+When you launch Frosty, the CLI also offers an interactive launch configuration flow. Press Enter to keep existing `.env` values, or enter new Snowflake, app identity, and model provider values for the current process. Set `FROSTY_CONFIG_ON_LAUNCH=false` to skip this prompt.
 
 #### Snowflake Connection
 
