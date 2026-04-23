@@ -782,8 +782,13 @@ async def interactive():
     banner.append("██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║     ╚██╔╝  \n", style="bold cyan")
     banner.append("██║     ██║  ██║╚██████╔╝███████║   ██║      ██║   \n", style="bold cyan")
     banner.append("╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝      ╚═╝  \n", style="bold cyan")
-    banner.append("                              ╰─ by Gyrus Inc ─╯\n", style="dim")
-    banner.append("                            www.thegyrus.com\n", style="dim link https://www.thegyrus.com")
+    banner.append("V2026.04.23", style="bold yellow")
+    banner.append("                     ╰─ by ", style="dim")
+    banner.append("Gyrus Inc", style="bold yellow")
+    banner.append(" ─╯\n", style="dim")
+    banner.append("                            ", style="dim")
+    banner.append("www.thegyrus.com", style="bold yellow link https://www.thegyrus.com")
+    banner.append("\n")
     _console.print(Panel(banner, subtitle="[dim]Your Snowflake AI Assistant  ·  type [bold]exit[/bold] to quit[/dim]", border_style="cyan"))
 
     # Create the session and runner once — shared across all turns so that
