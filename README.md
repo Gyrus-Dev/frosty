@@ -16,9 +16,7 @@
   ### 🛡️ Trusted & Validated                                                                                                                                                                                         
   **Accelerated by the Confluent Accelerator Program for AI Startups (Cohort-3).**                                                                                                                                   
   Frosty is built on a "Safety-First" architecture, validated through a rigorous program focused on the future of agentic data infrastructure.                                                                       
-                                                                                                                                                                                                                     
-  🚀 **Get Started Faster:** Need help deploying Frosty or want to see the latest agent recipes?                                                                                                                     
-  [**Join the Gyrus Discord Community**](https://discord.gg/GpgVzJ6ku) to connect with other data architects and the Gyrus team.                                                                                     
+                                     
   ---   
 
   ### 🚀 Get Started Faster                                                                                                                                                                                          
